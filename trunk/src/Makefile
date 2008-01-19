@@ -23,10 +23,10 @@ LIBS =	-L../Tcl/unix -L../Sql/.libs \
 # ========================================================
 all:	its tclSql
 
-tclSql: $(OBJECTSQL) psip
+tclSql: $(OBJECTSQL)
 	$(CXX) $(CFLAGS) -o tclSql $(OBJECTSQL) ${LIBS}
 
-its:	$(OBJECTS) psip lsip
+its:	$(OBJECTS)
 	$(CXX) $(CFLAGS) -o its $(OBJECTS) ${LIBS}
 
 clean:

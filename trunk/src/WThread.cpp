@@ -4,7 +4,6 @@
 #include <WThread.h>
 #include <EvThread.h>
 
-#include <udpCtxt.h>
 #include <tstCntxt.h>
 #include <dbCntxt.h>
 #include <cashCtxt.h>
@@ -73,9 +72,6 @@ static void newSigThEv(uLong tn,uChar sThId) {
 // Factory to produce new context & put it into hash
 CContext* CWThread::genNewCtx(CEvent* pe) {
   switch(pe->getEv()) {
-    case Evnt_sipCtxt:
-      DBG("CWThread::genNewCtx %u> CUdpCtxt\n",(uInt)pe->getCId());
-      return new CUdpCntx(pe->getCId());
     case Evnt_SaveData:
       DBG("CWThread::genNewCtx %u> CCashCtxt\n",(uInt)pe->getCId());
       return new CCashCtxt(pe->getCId(),pe->dtId(),77,8);

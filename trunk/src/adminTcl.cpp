@@ -3,7 +3,6 @@
 #include <dprint.h>
 #include <WThread.h>
 #include <adminTcl.h>
-#include <udpThread.h>
 #include <tstSigThrd.h>
 
 // TCL-if to signal threads
@@ -18,14 +17,6 @@ int CSigThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	// Sign. thread to start
         const char* sThId = interp->tGetVal(argv[2]);
 	switch(*(sThId++)) {
-	  case 'u': // udp <port> <NN * 0.01s> - start udp-server
-	    if(!strcmp("dp",sThId) && (argc == 5)) {
-	      TGVal(int,m0,argv[3]);
-	      TGVal(int,m1,argv[4]);
-	      p = new CUdpThrd((uShort)m0,(uShort)m1);
-	      res = p ? p->getTId() : 0;
-	    }
-	    break;
 	  case 'x': // xtst - start tstSigThrd
 	    if(!strcmp("tst",sThId) && (argc == 4)) {
 	      TGVal(int,nn,argv[3]);
