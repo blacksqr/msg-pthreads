@@ -11,7 +11,7 @@ INC = -I../inc -I../Tcl/generic -I../Sql
 #CFLAGS = -g  -pipe -Wall -pthread $(GDEFS) -mno-align-double -DBIG_FIFO #-DNO_DEBUG -pg
 CFLAGS = -O2 -pipe -Wall -pthread $(GDEFS) -mno-align-double -DBIG_FIFO #-DNO_DEBUG -pg
 
-OBJECTSQL = tclsql.o tclAdapter.o md5.o dprint.o
+OBJECTSQL = tclsql.o tclAdapter.o dprint.o
 OBJECTS = \
 	stlObj.o memPool.o pMutex.o getTime.o daemon.o Thread.o EvObj.o WThread.o \
 	tclAdapter.o Context.o Timer.o EvThread.o tstSigThrd.o adminTcl.o workTcl.o \

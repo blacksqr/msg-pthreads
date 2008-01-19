@@ -10,7 +10,6 @@
  * All Rights Reserved.
  * Contributor(s): Alex Goldenstein.<goldale.de@googlemail.com>
  */
-// Part of tclSql application
 #include <time.h>
 #include <math.h>
 #include <string.h>
@@ -46,7 +45,6 @@ extern "C" {
   // memory cleaning function
   void CleanTclCmd(ClientData cmdObj);
   int Sqlite3_Init(Tcl_Interp*);
-  int Md5_Init(Tcl_Interp*);
 #ifdef TCL_THREADS
   int TclThread_Init(Tcl_Interp*);
 #endif
@@ -251,7 +249,7 @@ int myTcl_AppInit(Tcl_Interp* interp) {
   if (TclThread_Init(interp) == TCL_ERROR)
     return TCL_ERROR;
 #endif
-  if((Sqlite3_Init(interp) == TCL_ERROR) || (Md5_Init(interp) == TCL_ERROR))
+  if(Sqlite3_Init(interp) == TCL_ERROR)
     return TCL_ERROR;
   CTclInterp* myTcl = new CTclInterp(interp);
   // init custom TCL commands
