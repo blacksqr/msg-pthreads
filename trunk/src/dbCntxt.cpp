@@ -20,9 +20,9 @@
 //                  012345678901234567890123456789012345
 const char* rStr = "asdfghjklqwertyuiopzxcvbnm0123456789";
 
-inline uInt RRand() {
-  //static CPMutex tm;
-  //CSglLock sl(tm);
+uInt RRand() {
+  static CPMutex tm;
+  CSglLock sl(tm);
   return random();
 }
 

@@ -76,7 +76,7 @@ static void newSigThEv(uLong tn,uChar sThId) {
     DBG("newSigTnEv sigThId=%u new check Alarm Now-%u/%u tmOut=%u\n",
 	sThId+1,(uInt)tn,(uInt)g_evThrdArr[sThId]->getTm(),dlt);
     g_evThrdArr[sThId]->setTm(tn);  // Store Time of last tmOut
-    tmQueue.set(7+dlt,TOut_sigThAlrm,HkCId,sThId+1);
+    tmQueue.set(3+dlt,TOut_sigThAlrm,HkCId,sThId+1);
   }
 }
 
@@ -100,7 +100,7 @@ CContext* CWThread::genNewCtx(CEvent* pe) {
     DBG("CWThread::genNewCtx CashCtxtId=%u\n",iCsCtxt);
     CContext::send0(Evnt_SaveData,iCsCtxt,(pVoid)iDbCtxt,'x');
   }
-  DBG("CWThread::genNewCtx %u> CTstCntx Ev=%d\n",(uInt)pe->getCId(),pe->getEv());
+  DBG("CWThread::genNewCtx %u CTstCntx Ev=%d\n",(uInt)pe->getCId(),pe->getEv());
   return new CTstCntx(pe->getCId());
   //LOG(L_ERR,"CWThread::genNewCtx for Event=%u no constructor found\n",pe->getEv());
   //return NULL;

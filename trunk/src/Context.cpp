@@ -30,18 +30,9 @@ char stopNewCtxt ='\0';
 
 void CCnxtMap::del(const uInt n) {
   CSglLock sl(m);
-  DBG("Class CCtxtMap.erase[%d] %u\n",n,numOfCntxt);
+  DBG("CCtxtMap.erase[%d] %u\n",n,numOfCntxt);
   erase(n); // Called in context destructor
   --numOfCntxt;
-}
-
-char CCnxtMap::next(iterator& i,pVoid& v) {
-  CSglLock sl(m);
-  if(i != end()) {
-    v = i->second; ++i;
-    return '\0';
-  }
-  return 'x';
 }
 
 // ==================================================== 
@@ -60,7 +51,6 @@ CContext::CContext(uInt i): cId(i),ctxtType(0x0),rfCount(0x01) {
 
 CContext::~CContext() {
   DBG("Context::~CContext> cId=%u\n",cId);
-  hashCntxt.del(cId);
   unlock();
 }
 
@@ -103,20 +93,20 @@ uChar CContext::isTimerOn(uChar type) {
 }
 
 void CContext::remRef() {
-  remRefHook();
   --rfCount;
   unlock();
   if(!rfCount) {
     DBG("Context::remRef> %u Ref>%d Seq %u<>%u\n",cId,rfCount,seq0,seq1);
     delete this;
-  }
+  } else
+    remRefHook();
 }
 
 void CContext::destruct() {
+  DBG("Context::destruct %u Ref-%u Type=%d Seq %u<>%u\n",cId,rfCount,ctxtType,seq0,seq1);
   hashCntxt.del(cId);
-  // Set del tmOut - 3,33 sec delete obj
-  tmQueue.set(333u,TOut_DelCtxt,(uInt)this);
-  DBG("Context::destruct %u> Ref-%u Seq %u<>%u\n",cId,rfCount,seq0,seq1);
+  // Set del tmOut - 0,03s delete obj
+  tmQueue.set(3u,TOut_DelCtxt,(uInt)this);
 }
 
 CContext* CContext::findCtxt(uInt id) {
@@ -128,7 +118,6 @@ void CContext::Halt() {
     yield();
   DBG("Context::Halt> %u Ref>%d Seq %u<>%u\n",cId,rfCount,seq0,seq1);
   destruct();
-  remRef();
 }
 
 // ===============================================

@@ -88,12 +88,10 @@ puts ">aTcl: start work thread [wThrd start]"
 
 # set first hausekeeping timeout in 5.55 sec
 puts ">aTcl: HsKeep tOut        [apps tout 555 2 0]"
-# make NN msg/s
-#puts ">aTcl: start xTst  thread [sThrd start xtst 1777]"
 # make NN1 and NN2 msg/s TT1 and TT2 in 0.1 s
-puts ">aTcl: start zTst  thread [sThrd start ztst 777  999  10 10]"
-puts ">aTcl: start zTst  thread [sThrd start ztst 555  3777 18 2]"
-puts ">aTcl: start zTst  thread [sThrd start ztst 3777 555  1  19]"
+puts ">aTcl: start xtst  thread [sThrd start xtst 777  999  10 10]"
+puts ">aTcl: start xtst  thread [sThrd start xtst 555  3777 18 2]"
+puts ">aTcl: start xtst  thread [sThrd start xtst 3777 555  1  19]"
 # Alarm generation thread NN1 NN@ msg/s and tmOut alarm
 #puts ">aTcl: start aTst  thread [sThrd start atst 9 5]"
 # UDP Thread - to read SIP msg
@@ -108,12 +106,11 @@ puts ">aTcl: Start Echo_Server [Echo_Server 4567]"
 ####################################################
 
 puts ">aTcl: Stop Ctxt factory  [apps endNC 3]"
-# wait 1,11 sec
-after 1111
 puts ">aTcl: Stop sign.threads  [apps goff]"
-after 3333
-puts ">aTcl: Stop work-threads  [apps woff]"
-after 333
+puts ">aTcl: NOW Remove all context"
 puts ">aTcl: Remove all context [apps halt]"
+after 3333
+puts ">aTcl: NOW Stop work-threads"
+puts ">aTcl: Stop work-threads  [apps woff]"
 puts ">aTcl: *** Exit admin script ***"
 # $Log$

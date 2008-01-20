@@ -1,4 +1,4 @@
-#!/Xxx/FrWork/Tcl/unix/tclsh
+#!../Tcl/unix/tclsh
 proc Echo_Client {host port} {
     set s [socket $host $port]
     fconfigure $s -buffering line

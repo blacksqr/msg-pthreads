@@ -18,10 +18,6 @@
 #include <Thread.h>
 #include <memPool.h>
 
-const uChar _tmFlg_[] = {
-  0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80
-};
-
 class CTmThrd;
 
 class CTmObj {

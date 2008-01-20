@@ -28,20 +28,13 @@ int CSigThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	// Sign. thread to start
         const char* sThId = interp->tGetVal(argv[2]);
 	switch(*(sThId++)) {
-	  case 'x': // xtst - start tstSigThrd
-	    if(!strcmp("tst",sThId) && (argc == 4)) {
-	      TGVal(int,nn,argv[3]);
-	      p = new CTstSgTh0(nn);
-	      res = p ? p->getTId() : 0;
-	    }
-	    break;
-	  case 'z': // ztst - start tstSigThrd1
+	  case 'x': // xtst - start tstSigThrd1
 	    if(!strcmp("tst",sThId) && (argc == 7)) {
 	      TGVal(int,m0,argv[3]);
 	      TGVal(int,m1,argv[4]);
 	      TGVal(short,t0,argv[5]);
 	      TGVal(short,t1,argv[6]);
-	      p = new CTstSgTh1(m0,m1,t0,t1);
+	      p = new CTstSgTh(m0,m1,t0,t1);
 	      res = p ? p->getTId() : 0;
 	    }
 	    break;
@@ -49,7 +42,7 @@ int CSigThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	    if(!strcmp("tst",sThId) && (argc == 5)) {
 	      TGVal(int,m0,argv[3]);
 	      TGVal(int,m1,argv[4]);
-	      p = new CTstSgTh2(m0,m1);
+	      p = new CTstSgThX(m0,m1);
 	      res = p ? p->getTId() : 0;
 	    }
 	    break;
@@ -208,20 +201,17 @@ int CComApp::cmdProc(int argc,Tcl_Obj* const argv[]) {
       break;
     case 'h': // halt - running context's
       if(!strcmp("alt",sCmd) && (argc == 2)) {
-	CContext* pc = NULL;
 	// Delete all context from hashCntxt
-	CCnxtMap::iterator I;
-	char xi;
-	hashCntxt.top(I);
-	do {
-	  pVoid px = pc;
-	  xi = hashCntxt.next(I, px);
-	  pc = (CContext*)px;
-	  if(!xi && pc) {
-	    DBG("CComApp::cmdProc Halt context[%u - %d]\n",pc->getId(),xi);
+	CContext* pc = NULL;
+	CCnxtMap::iterator I = hashCntxt.begin();
+	while(I != hashCntxt.end()) {
+	  pc = (CContext*)((*I).second);
+	  if(pc) {
+	    DBG("CComApp::cmdProc Halt context[%u]\n",pc->getId());
 	    pc->Halt();
 	  }
-	} while(!xi);
+	  I = hashCntxt.begin();
+	}
       }
       break;
     default :

@@ -13,107 +13,129 @@
 #include <dprint.h>
 #include <getTime.h>
 #include <tstSigThrd.h>
+#include <ext/hash_map>
 
-CEvent* CTstSgTh0::getEvent() {
-  CEvent* ppe = NULL;
-  if(ff < 1024) {
-    sTm = tNow();
-    // Get new context-id
-    CId[ff] = CContext::reservId();
-    DBG("CTstSgTh0::getEvent %u> %d Evnt_TstCntxt CId=%u\n",sigThId,ff,CId[ff]);
-    ppe = CEvent::newEv(CId[ff],Evnt_TstCntxt,0u,sigThId,'x');
-    ++nSend;
-    ++ff;
-    return ppe;
-  }
-  int timeOut = tNow() - sTm;
-  if(timeOut > 200) {
-    LOG(L_WARN,"CTstSgTh0::getEvent %u in Delta=%u send %u msg %u<>%u\n",
-	sigThId,timeOut,nSend,(100*(int)nSend)/timeOut,nMsg/2);
-    sTm += 200;
-    timeOut -= 200;
-    nSend = 0u;
-  }
-  timeOut = ((2000 * nSend++) / nMsg) - (10 * timeOut);
-  if(timeOut > 11) {
-    struct timespec req;
-    req.tv_sec  = timeOut / 1000;
-    // 1000000000
-    req.tv_nsec = 1000000 * (timeOut % 1000);
-    (void)nanosleep(&req, NULL);
-  }
-  kk = (kk > 1023) ? 0 : kk;
-  //DBG("CTstSgTh0::getEvent %u> %d Evnt_TstSeqw CId=%u nSend=%u\n",sigThId,kk,CId[kk],nSend);
-  ppe = CEvent::newEv(CId[kk++],Evnt_TstSeqw,0u,sigThId);
-  return ppe;
-}
+extern uInt RRand();
 
 //=================================================
 
-CTstSgTh1::CTstSgTh1(uShort m0,uShort m1,uChar t0,uChar t1):
+CTstCtxtMgr::CTstCtxtMgr() {
+  Nn = 0u;
+  for(uShort k=0u; k<ctxtPoolSz; ++k)
+    cPool[k] = k+2;
+  memset(cPoolFlg,0,sizeof(cPoolFlg));
+  cPool[ctxtPoolSz-1] = 0u;
+  pFree = 1u;
+}
+
+uInt CTstCtxtMgr::Alloc(uInt ci) {
+  DBG("CTstCtxtMgr::Alloc cId=%u nn=%u pFree=%u cPool=%u\n",ci,Nn,pFree,cPool[pFree-1]);
+  if(pFree) {
+    CSglLock sl(m);
+    --pFree;
+    uShort nx = cPool[pFree];
+    cPool[pFree] = ci;
+    hsh[ci] = pFree+1;
+    cPoolFlg[pFree/8] |= _tmFlg_[pFree%8];
+    pFree = nx;
+    ++Nn;
+    return ci;
+  }
+  return 0u;
+}
+
+// Get existing tst-context
+uInt CTstCtxtMgr::get(uInt rnd) {
+  if(!Nn)
+    return 0u;
+  {
+    CSglLock sl(m);
+    uShort x = rnd % ((Nn < ctxtPoolSz-16 ) ? Nn : (ctxtPoolSz-3));
+    uChar  z = x % 8;
+    x /= 8;
+    DBG("CTstCtxtMgr::get %u/%u x=%u z=%u\n",pFree,Nn,x,z);
+    while(!cPoolFlg[x])
+      x = x ? (x-1) : ((ctxtPoolSz/8)-1);
+    while(!(cPoolFlg[x] & _tmFlg_[z]))
+      z = z ? (z-1) : 7;
+    DBG("CTstCtxtMgr::get cId=cPool[%u]=%u\n",8*x+z,cPool[8*x+z]);
+    return cPool[(8 * x) + z];
+  }
+}
+
+void CTstCtxtMgr::Free(uInt ci) {
+  {
+    CSglLock sl(m);
+    uShort nx = hsh[ci];
+    if(nx) {
+      --nx;
+      hsh.erase(ci);
+      cPool[nx] = pFree;
+      cPoolFlg[nx/8] &= ~_tmFlg_[nx%8];
+      pFree = nx+1;
+      --Nn;
+    } else
+      DBG("CTstCtxtMgr::Free Error Ctxt=%u not found\n",ci);
+  }
+  DBG("CTstCtxtMgr::Free cId=%u nn=%u pFree=%u\n",ci,Nn,pFree);
+}
+
+CTstCtxtMgr tstCtxtMgr;
+
+CTstSgTh::CTstSgTh(uShort m0,uShort m1,uChar t0,uChar t1):
   CEvThrd(5000/m0),nMsg0(m0),nMsg1(m1),tm0(t0),tm1(t1)
 {
   nSend = 0u;
   nMsg  = nMsg0;
-  DtTm   = 10 * tm0;
-  tName = "tstSgThrd_1";
-  ll = jj = ff = kk = 0x0;
-  DBG("CTstSgTh1::CTstSgTh1 %u> m0=%u m1=%u t0=%u t1=%u DtTm=%d\n",
+  DtTm   = 10u * tm0;
+  tName = "tstSgThrd";
+  DBG("CTstSgTh::CTstSgTh %u> m0=%u m1=%u t0=%u t1=%u DtTm=%d\n",
       sigThId,m0,m1,t0,t1,DtTm);
+  sTm = tNow();
 }
 
-CEvent* CTstSgTh1::getEvent() {
-  CEvent* ppe = NULL;
-  if(ff < 221) {
-    ll = jj = 0;
-    sTm = tNow();
-    // Get new context-id
-    CId[ff] = CContext::reservId();
-    DBG("CTstSgTh1::getEvent %u> %d Evnt_TstCntxt CId=%u\n",sigThId,ff,CId[ff]);
-    ppe = CEvent::newEv(CId[ff],Evnt_TstCntxt,0u,sigThId,'x');
-    ++nSend;
-    ++ff;
-    return ppe;
+//=================================================
+
+CEvent* CTstSgTh::getEvent() {
+  uInt x = tNow() - sTm;
+  if(x > DtTm) {
+    LOG(L_ERR,"CTstSgTh::getEvent %u in Delta=%u send %u msg %u<>%u\n",
+	sigThId,x,nSend,(100*(int)nSend)/x,nMsg);
+    sTm += DtTm;
+    x -= DtTm;
+    nSend = 0u;
+    DtTm = 10 * ((DtTm == (10u*tm0)) ? tm1 : tm0);
+    nMsg = (nMsg == nMsg0) ? nMsg1 : nMsg0;
   }
-  if(jj++ < 1111) {
-    int x = tNow() - sTm;
-    if(x > DtTm) {
-      LOG(L_ERR,"CTstSgTh1::getEvent %u in Delta=%u send %u msg %u<>%u\n",
-	  sigThId,x,nSend,(100*(int)nSend)/x,nMsg);
-      sTm += DtTm;
-      x -= DtTm;
-      nSend = 0u;
-      DtTm = 10 * ((DtTm == (10 * tm0)) ? tm1 : tm0);
-      nMsg = (nMsg == nMsg0) ? nMsg1 : nMsg0;
+  if((x * nMsg) < (100u * nSend)) {
+    int timeOut = (10 * (100*(int)nSend - x*nMsg)) / nMsg;
+    if(timeOut > 3) {
+      struct timespec req;
+      req.tv_sec  = timeOut / 1000;
+      // 1000000000
+      req.tv_nsec = 1000000 * (timeOut % 1000);
+      (void)nanosleep(&req, NULL);
     }
-    if(x * nMsg < 100 * (int)nSend) {
-      int timeOut = (10 * (100*(int)nSend - x*nMsg)) / nMsg;
-      if(timeOut > 3) {
-	struct timespec req;
-	req.tv_sec  = timeOut / 1000;
-	// 1000000000
-	req.tv_nsec = 1000000 * (timeOut % 1000);
-	(void)nanosleep(&req, NULL);
-      }
-    }
-    kk = (kk > 221) ? 0 : kk;
-    ++nSend;
-    DBG("CTstSgTh1::getEvent %u> %d Evnt_TstSeqw CId=%u nSend=%u\n",sigThId,kk,CId[kk],nSend);
-    return CEvent::newEv(CId[kk++],Evnt_TstSeqw,0u,sigThId);
   }
-  if(ll++ < 221) {
-    ++nSend;
-    sTm = tNow();
-    DBG("CTstSgTh1::getEvent %d> Evnt_DelCtxt CId=%u\n",ll,CId[ll]);
-    return CEvent::newEv(CId[ll],Evnt_DelCtxt,0u,sigThId);
+  ++nSend;
+  uInt CId, vRnd = RRand();
+  if(!(vRnd%3) && tstCtxtMgr.isFree()) {
+    // Gen new tstCtxt
+    CId = tstCtxtMgr.Alloc(CContext::reservId());
+    DBG("CTstSgTh::getEvent %u Evnt_TstCntxt CId-new=%u\n",sigThId,CId);
+    return CEvent::newEv(CId,Evnt_TstCntxt,0u,sigThId,'x');
   }
-  ff = 0;
+  CId = tstCtxtMgr.get(vRnd);
+  if(CId) {
+    DBG("CTstSgTh::getEvent %u Evnt_TstSeqw CId=%u nSend=%u\n",sigThId,CId,nSend);
+    return CEvent::newEv(CId,Evnt_TstCntxt,0u,sigThId);
+  }
   return NULL;
 }
 
 //=================================================
 
-CTstSgTh2::CTstSgTh2(uShort m0,uShort m1):
+CTstSgThX::CTstSgThX(uShort m0,uShort m1):
   CEvThrd(5000/m0),nMsg0(2*m0),nMsg1(2*m1),tm0(7),tm1(2)
 {
   tName = "tstSgThrd_2";
@@ -123,14 +145,14 @@ CTstSgTh2::CTstSgTh2(uShort m0,uShort m1):
   ll = jj = ff = kk = 0x0;
 }
 
-CEvent* CTstSgTh2::getEvent() {
+CEvent* CTstSgThX::getEvent() {
   CEvent* ppe = NULL;
   if(ff < 5) {
     ll = jj = 0;
     sTm = tNow();
     // Get new context-id
     CId[ff] = CContext::reservId();
-    DBG("CTstSgTh2::getEvent %u> %d Evnt_TstCntxt CId=%u\n",sigThId,ff,CId[ff]);
+    DBG("CTstSgThX::getEvent %u> %d Evnt_TstCntxt CId=%u\n",sigThId,ff,CId[ff]);
     ppe = CEvent::newEv(CId[ff],Evnt_TstCntxt,0u,sigThId,'x');
     ++ff;
     return ppe;
@@ -139,7 +161,7 @@ CEvent* CTstSgTh2::getEvent() {
     ++jj;
     int x = tNow() - sTm;
     if(x > DtTm) {
-      LOG(L_ERR,"CTstSgTh2::getEvent %u in Delta=%u send %u msg %u<>%u\n",
+      LOG(L_ERR,"CTstSgThX::getEvent %u in Delta=%u send %u msg %u<>%u\n",
 	  sigThId,x,nSend,(100*(int)nSend)/x,nMsg/2);
       sTm += DtTm;
       x -= DtTm;
@@ -156,7 +178,7 @@ CEvent* CTstSgTh2::getEvent() {
       (void)nanosleep(&req, NULL);
     }
     kk = (kk > 4) ? 0 : kk;
-    //DBG("CTstSgTh2::getEvent %u> %d Evnt_TstSeqw CId=%u nSend=%u\n",sigThId,kk,CId[kk],nSend);
+    //DBG("CTstSgThX::getEvent %u> %d Evnt_TstSeqw CId=%u nSend=%u\n",sigThId,kk,CId[kk],nSend);
     ppe = CEvent::newEv(CId[kk++],Evnt_TstSeqw,0u,sigThId);
     ++nSend;
     return ppe;
@@ -164,7 +186,7 @@ CEvent* CTstSgTh2::getEvent() {
   if(ll < 5) {
     ++ll;
     sTm = tNow();
-    DBG("CTstSgTh2::getEvent %u> %d Evnt_DelCtxt CId=%u\n",sigThId,ll,CId[ll]);
+    DBG("CTstSgThX::getEvent %u> %d Evnt_DelCtxt CId=%u\n",sigThId,ll,CId[ll]);
     ppe = CEvent::newEv(CId[ll],Evnt_DelCtxt,0u,sigThId);
     return ppe;
   }
@@ -173,7 +195,7 @@ CEvent* CTstSgTh2::getEvent() {
   req.tv_sec  = 2 + ((11 * (int)kpAlive) / 100);
   req.tv_nsec = 0;
   (void)nanosleep(&req, NULL);
-  DBG("CTstSgTh2::getEvent %u>\n",sigThId);
+  DBG("CTstSgThX::getEvent %u>\n",sigThId);
   ff = 0;
   return NULL;
 }

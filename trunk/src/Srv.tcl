@@ -1,4 +1,4 @@
-#!/Xxx/FrWork/src/tclSql
+#!./tclSql
 
 # port - The server's port number
 proc Echo_Server {port} {

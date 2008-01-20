@@ -41,8 +41,7 @@ CCashCtxt::CCashCtxt(uInt i,uInt db,uShort tm,uShort m):
 CCashCtxt::~CCashCtxt() {
   DBG("CashCtxt::~CCashCtxt cId=%u> cshSize=%u Flg=%d\n",cId,cshSize,flg);
   // send cash in DB
-  if(cshSize)
-    send0(Evnt_StoreInDb,iDbCtxt,root);
+  //if(cshSize) send0(Evnt_StoreInDb,iDbCtxt,root);
 }
 
 void CCashCtxt::saveCash(uInt xt) {

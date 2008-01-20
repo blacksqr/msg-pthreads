@@ -48,12 +48,6 @@ public __gnu_cxx::hash_map < uInt,pVoid,__gnu_cxx::hash<uInt>,eqUInt >
     return (CContext*)getv(n);
   }
   void del(const uInt n);
-  // to traverse all Contexts
-  void top(iterator& i) {
-    CSglLock sl(m);
-    i = begin();
-  }
-  char next(iterator& i,pVoid& v);
 };
 // call-context hash
 extern CCnxtMap hashCntxt;

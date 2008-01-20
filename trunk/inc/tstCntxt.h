@@ -25,10 +25,10 @@ class CTstCntx: public CContext {
   virtual uShort Run(CEvent* pe,CWThread* pwt);
   virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt);
   virtual char onHalt();
-  char rx, inTcl;
+  uChar nm,nMsg;
  public:
   CTstCntx(uInt i);
-  ~CTstCntx() { DBG("CTstCntx::~CTstCntx cId=%u\n",cId); }
+  ~CTstCntx();
 };
 
 #endif // TST_CNTXT_H

@@ -12,26 +12,32 @@
  */
 #include <dprint.h>
 #include <tstCntxt.h>
+#include <tstSigThrd.h>
 #include <workTcl.h>
 #include <WThread.h>
 
-const char rr = 10;
-
-CTstCntx::CTstCntx(uInt i): CContext(i),rx(0x0) {
+CTstCntx::CTstCntx(uInt i): CContext(i) {
   ctxtType = C_CTXT_TST;
-  inTcl = cId % rr;
+  nMsg = 3u + (random() % 7);
+  nm = 0u;
+  DBG("CTstCntx::CTstCntx Cid=%u mMsg=%u\n",cId,nMsg);
+}
+
+CTstCntx::~CTstCntx() {
+  DBG("CTstCntx::~CTstCntx cId=%u Flg=%u/%u\n",cId,nm,nMsg);
+  if(nMsg)
+    send0(Evnt_SaveData,iCsCtxt);
+  tstCtxtMgr.Free(cId);
 }
 
 uShort CTstCntx::Run(CEvent* pe,CWThread* pwt) {
-  rx = (rx > rr) ? '\0' : rx;
-  DBG("CTstCntx::Run cId=%u> EventId=%u %d<>%d\n",cId,pe->getEv(),rx,inTcl);
-  if(pe->getEv() == Evnt_DelCtxt) {
-    DBG("CTstCntx::Run destruct %u> EventId=%u\n",cId,pe->getEv());
-    destruct();
-    return 0; // get new event
-  }
-  if(inTcl == rx++) {
+  ++nm;
+  DBG("CTstCntx::Run cId=%u EventId=%u %u<>%u\n",cId,pe->getEv(),nm,nMsg);
+  if(nm == nMsg) {
+    DBG("CTstCntx::Run save_destruct cId=%u\n",cId);
     send0(Evnt_SaveData,iCsCtxt);
+    destruct();
+    nMsg = 0u;
     return 0x1;
   }
   return 0x0;
