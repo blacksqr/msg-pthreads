@@ -3,7 +3,6 @@ CC  = gcc
 CXX = g++
 SRC_DIR = .
 
-GDEFS   = #-DSOFT_OWNER
 ACDEFFS = -DLINUX
 
 INC = -I../inc -I../Tcl/generic -I../Sql

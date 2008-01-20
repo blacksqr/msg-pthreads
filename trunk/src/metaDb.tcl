@@ -1,10 +1,10 @@
 #!./tclSql
 
-file delete /tmp/ITSs.db
-file delete /tmp/ITSs.db-journal
+file delete /tmp/its_demo.db
+file delete /tmp/its_demo.db-journal
 file delete /tmp/its.log
 
-sqlite3 db /tmp/ITSs.db
+sqlite3 db /tmp/its_demo.db
 
 db eval {
     PRAGMA default_synchronous=OFF;

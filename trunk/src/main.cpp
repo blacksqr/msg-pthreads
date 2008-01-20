@@ -132,7 +132,7 @@ int main(int argc,char* argv[]) {
       // Admin interpreter
       CAdmTcl tcl;
       DBG("*** Start admin-TCL script ***\n");
-      rrr = tcl.Init() ? -2 : tcl.EvalFile("/Xxx/FrWork/src/tcl/admin.tcl");
+      rrr = tcl.Init() ? -2 : tcl.EvalFile("./tcl/admin.tcl");
     }
     // Stop timer thread
     tmQueue.set(tNow(),TOut_NoTmOut,HkCId);

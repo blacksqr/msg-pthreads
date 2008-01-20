@@ -1,5 +1,3 @@
-# $Id$
-
 # to send statistic info
 proc Echo_Client {host port} {
     set s [socket $host $port]
@@ -16,7 +14,7 @@ if {[catch {set sOut [Echo_Client localhost 5777]} c_res]} {
 puts ">TID<$wThId> wTcl> *** Work thread run ***"
 set nTclCall 0
 
-puts "icsEvent open database [sqlite3 db /tmp/ITSs.db]"
+puts "icsEvent open database [sqlite3 db /tmp/its_demo.db]"
 # Max lock wait to 0,33 sec
 #puts "Lock wait time-out to [db timeout 333]"
 puts "Set synchronous=OFF     >[db eval {PRAGMA synchronous  = OFF;}]"
@@ -98,8 +96,3 @@ while 1 {
 	}
     }
 }
-
-# $Log$
-#	    COMMIT ;
-#	    END ;
-#	    ROLLBACK ;

@@ -252,7 +252,7 @@ void* CWThread::go() {
     }
     DBG("CWThread::go %u YIELD_End %d<>%d\n",wtId,nReload,nRun);
     nReload = nRun;
-    if(Tcl.EvalFile("/Xxx/FrWork/src/tcl/wrkThread.tcl")) {
+    if(Tcl.EvalFile("./tcl/wrkThread.tcl")) {
       LOG(L_CRIT,"CWThread::go %u> Reload TCL-Script Now=%u\n",wtId,(uInt)tNow());
       // Put Evnt_HsKeepCtxt - Inform HauseKeep about fail wrkTcl
       uInt ctxId = pCont ? pCont->getId() : 0u;

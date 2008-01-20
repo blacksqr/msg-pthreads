@@ -89,7 +89,7 @@ out:
     close(fd);
   }
   errno = 0;  /* probably got set to EBADF from a close */
-  chdir("/tmp");
+  //chdir("/tmp");
   umask(0);
   if(ignsigcld) {
 #ifdef	SIGTSTP

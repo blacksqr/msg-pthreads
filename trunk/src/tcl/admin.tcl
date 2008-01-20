@@ -43,9 +43,37 @@ proc Echo {sock} {
 	}
     }
 }
-# uncomment - to block "exit" command in admin script
+# Block "exit" command in admin script
 rename exit {}
 
+# Setup demo database & clean all log files
+catch {
+    file delete /tmp/its_demo.db
+    file delete /tmp/its_demo.db-journal
+}
+
+sqlite3 db /tmp/its_demo.db
+db eval {
+    PRAGMA default_synchronous=OFF;
+    PRAGMA default_temp_store=MEMORY;
+    PRAGMA default_cache_size=16384;
+    PRAGMA legacy_file_format = OFF;
+    BEGIN; -- begin transaction
+
+    CREATE TABLE _RemUser
+    (
+     uid   TEXT PRIMARY KEY,
+     pwd   TEXT,    -- User password
+     xTxt  TEXT,    -- User password
+     pId   INTEGER, -- Provider ID
+     IId   INTEGER, -- Provider ID
+     memo  TEXT);
+    CREATE INDEX indIid ON _RemUser(Iid);
+
+    COMMIT; -- end transaction
+}
+puts ">>>> RemUser"
+db close
 #######################################
 
 puts "\n\n>aTcl: *** START Admin Script ***\n"
@@ -63,9 +91,9 @@ puts ">aTcl: HsKeep tOut        [apps tout 555 2 0]"
 # make NN msg/s
 #puts ">aTcl: start xTst  thread [sThrd start xtst 1777]"
 # make NN1 and NN2 msg/s TT1 and TT2 in 0.1 s
-puts ">aTcl: start zTst  thread [sThrd start ztst 1111 1111  10 10]"
-puts ">aTcl: start zTst  thread [sThrd start ztst 1111 11111 18 2]"
-puts ">aTcl: start zTst  thread [sThrd start ztst 1111 11111 19 1]"
+puts ">aTcl: start zTst  thread [sThrd start ztst 777  999  10 10]"
+puts ">aTcl: start zTst  thread [sThrd start ztst 555  3777 18 2]"
+puts ">aTcl: start zTst  thread [sThrd start ztst 3777 555  1  19]"
 # Alarm generation thread NN1 NN@ msg/s and tmOut alarm
 #puts ">aTcl: start aTst  thread [sThrd start atst 9 5]"
 # UDP Thread - to read SIP msg
