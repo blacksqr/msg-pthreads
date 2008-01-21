@@ -21,14 +21,21 @@ extern uInt iDbCtxt;
 
 // on-Test-event context
 class CTstCntx: public CContext {
+  // disable copy constructor.
+  CTstCntx(const CTstCntx&);
+  void operator = (const CTstCntx&);
  protected:
   virtual uShort Run(CEvent* pe,CWThread* pwt);
   virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt);
   virtual char onHalt();
   uChar nm,nMsg;
- public:
   CTstCntx(uInt i);
   ~CTstCntx();
+  virtual void delHook() { delTCtxt(this); }
+ public:
+  // memPool - new & delete
+  static CTstCntx* newTCtxt(uInt i);
+  static void delTCtxt(CTstCntx* p);
 };
 
 #endif // TST_CNTXT_H

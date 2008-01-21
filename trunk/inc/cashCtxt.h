@@ -25,8 +25,7 @@ class CCsItem {
   CCsItem* nxt;
   pVoid    data;
   CCsItem(CCsItem* n,pVoid p): nxt(n),data(p) {}
-  ~CCsItem() {
-  }
+  ~CCsItem() {}
  public:
   CCsItem* next() { return nxt; }
   // memPool - new & delete

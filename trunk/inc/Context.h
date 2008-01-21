@@ -70,9 +70,10 @@ class CContext {
   uChar State, seq0, seq1, ctxtType;
   char  rfCount; // Reff. count
   CContext(uInt i);
-  // It's possible to place Cntxt in memPoll
-  // Destructor must be NOT virtual & and only END derived class
+  // It's possible to place Cntxt-obj in memPoll
+  // Destructor must be NOT virtual & and only in last derived class
   virtual ~CContext();
+  virtual void delHook() { delete this; }
   // called from WThread => Return ~0-in TCL; 0-get new Event
   virtual uShort Run(CEvent* pe,CWThread* pwt)     = 0;
   virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt=NULL) = 0;

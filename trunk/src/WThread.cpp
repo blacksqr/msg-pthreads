@@ -101,7 +101,7 @@ CContext* CWThread::genNewCtx(CEvent* pe) {
     CContext::send0(Evnt_SaveData,iCsCtxt,(pVoid)iDbCtxt,'x');
   }
   DBG("CWThread::genNewCtx %u CTstCntx Ev=%d\n",(uInt)pe->getCId(),pe->getEv());
-  return new CTstCntx(pe->getCId());
+  return CTstCntx::newTCtxt(pe->getCId());
   //LOG(L_ERR,"CWThread::genNewCtx for Event=%u no constructor found\n",pe->getEv());
   //return NULL;
 }

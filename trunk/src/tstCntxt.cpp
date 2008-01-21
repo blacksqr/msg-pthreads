@@ -16,9 +16,25 @@
 #include <workTcl.h>
 #include <WThread.h>
 
+// event pool
+static CMPool CTCtxt_mem(sizeof(CTstCntx),0x80);
+
+CTstCntx* CTstCntx::newTCtxt(uInt i) {
+  return new (CTCtxt_mem.pAlloc()) CTstCntx(i);
+}
+
+void CTstCntx::delTCtxt(CTstCntx* pt) {
+  pt->~CTstCntx();
+  CTCtxt_mem.pFree(pt);
+}
+
+// ======================================================
+
+extern uInt RRand();
+
 CTstCntx::CTstCntx(uInt i): CContext(i) {
   ctxtType = C_CTXT_TST;
-  nMsg = 3u + (random() % 7);
+  nMsg = 3u + (RRand() % 7);
   nm = 0u;
   DBG("CTstCntx::CTstCntx Cid=%u mMsg=%u\n",cId,nMsg);
 }

@@ -97,7 +97,7 @@ void CContext::remRef() {
   unlock();
   if(!rfCount) {
     DBG("Context::remRef> %u Ref>%d Seq %u<>%u\n",cId,rfCount,seq0,seq1);
-    delete this;
+    delHook();
   } else
     remRefHook();
 }

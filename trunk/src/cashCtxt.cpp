@@ -40,8 +40,21 @@ CCashCtxt::CCashCtxt(uInt i,uInt db,uShort tm,uShort m):
 
 CCashCtxt::~CCashCtxt() {
   DBG("CashCtxt::~CCashCtxt cId=%u> cshSize=%u Flg=%d\n",cId,cshSize,flg);
+#if 0
   // send cash in DB
-  //if(cshSize) send0(Evnt_StoreInDb,iDbCtxt,root);
+  if(cshSize) {
+    send0(Evnt_StoreInDb,iDbCtxt,root);
+    cshSize = 0u;
+  }
+#else
+  // Clean cash
+  while(cshSize && root) {
+    CCsItem *pp = root->next();
+    CCsItem::delItem(root);
+    root = pp;
+    --cshSize;
+  }
+#endif // 0
 }
 
 void CCashCtxt::saveCash(uInt xt) {
