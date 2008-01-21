@@ -152,5 +152,3 @@ int main(int argc,char* argv[]) {
   LOG(L_NOTICE,"Main: Exit OK >%d<\n",rrr);
   return rrr;
 }
-
-// $Log$

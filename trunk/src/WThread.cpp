@@ -269,5 +269,3 @@ void* CWThread::go() {
   LOG(L_WARN,"CWThread::go %u TERMINATED\n",wtId);
   return NULL;
 }
-
-// $Log$
