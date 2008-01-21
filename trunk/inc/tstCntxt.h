@@ -28,6 +28,7 @@ class CTstCntx: public CContext {
   virtual uShort Run(CEvent* pe,CWThread* pwt);
   virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt);
   virtual char onHalt();
+  uInt cStart;
   uChar nm,nMsg;
   CTstCntx(uInt i);
   ~CTstCntx();

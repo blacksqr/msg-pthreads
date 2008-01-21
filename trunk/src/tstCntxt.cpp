@@ -15,6 +15,7 @@
 #include <tstSigThrd.h>
 #include <workTcl.h>
 #include <WThread.h>
+#include <getTime.h>
 
 // event pool
 static CMPool CTCtxt_mem(sizeof(CTstCntx),0x80);
@@ -34,13 +35,15 @@ extern uInt RRand();
 
 CTstCntx::CTstCntx(uInt i): CContext(i) {
   ctxtType = C_CTXT_TST;
+  cStart = tNow();
   nMsg = 3u + (RRand() % 7);
   nm = 0u;
   DBG("CTstCntx::CTstCntx Cid=%u mMsg=%u\n",cId,nMsg);
 }
 
 CTstCntx::~CTstCntx() {
-  DBG("CTstCntx::~CTstCntx cId=%u Flg=%u/%u\n",cId,nm,nMsg);
+  LOG(L_WARN,"CTstCntx::~CTstCntx cId=%u Flg=%u/%u Live=%u\n",
+      cId,nm,nMsg,(uInt)(tNow()-cStart));
   if(nMsg)
     send0(Evnt_SaveData,iCsCtxt);
   tstCtxtMgr.Free(cId);
