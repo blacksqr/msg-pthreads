@@ -6,15 +6,13 @@ proc Echo_Client {host port} {
 }
 set s [Echo_Client localhost 4567]
 
-set fc [open [lindex $argv 0] r]
+puts $s "wThrd start"
+puts "Echo>> [gets $s]"
+puts $s "wThrd start"
+puts "Echo>> [gets $s]"
 
-while { [gets $fc line] >=0 } {
-  #puts $line
-  set list [split $line %]
-  set pin "1[lindex $list 1]"
-  set nr  [lindex $list 0]
-  if {$pin != "1"} {
-    puts $s "telCard import 500 0 0x0300 64 0 0 19 0 91 $pin $nr"
-    puts "$pin $nr >>> [gets $s]"
-  }
-}
+puts $s "apps xstat on"
+puts "Echo>> [gets $s]"
+
+# For shutdown
+#puts $s "appExit"
