@@ -104,7 +104,7 @@ void* CTmThrd::go() {
 	tmQueue.nt = (*ub).first;
 	for(i=lb; i!=ub; ++i) {
 	  pTm = (*i).second;
-	  // Check for TOut_NoTmOut - Exit TIMER
+	  // Check for TOut_NoTmOut - to exit Timer
 	  if(pTm->type == TOut_NoTmOut)
 	    return NULL;
 	  // put event in Fifo

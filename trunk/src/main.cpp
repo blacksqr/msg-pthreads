@@ -69,6 +69,9 @@ public:
   }
 };
 
+char appsHomeArr[320];
+const char* appsHome = NULL;
+
 int main(int argc,char* argv[]) {
   int rrr = 0;
   const char* outFl = NULL;
@@ -107,9 +110,19 @@ int main(int argc,char* argv[]) {
       dbgLevel = (dbgLevel>4) ? 0x4 : dbgLevel;
       continue;
     }
-    LOG(L_WARN,">Main>: Bad option \"%s\"\n",argv[1]);
+    LOG(L_WARN,"Main: Bad option \"%s\"\n",argv[1]);
     argv = &argv[1];
     --argc;
+  }
+  {
+    appsHome = getenv("ITS_APP_HOME");
+    if(appsHome)
+      strcpy(appsHomeArr,appsHome);
+    else
+      appsHome = getcwd(appsHomeArr,sizeof(appsHomeArr));
+    LOG(L_WARN,"Main: Application HOME <%s>\n",(char*)appsHomeArr);
+    strcat(appsHomeArr,"/tcl/");
+    appsHome = appsHomeArr + strlen(appsHomeArr);
   }
   if(GlAppsFlag & DAEMON_MODE)
     daemon_start(0);
@@ -131,11 +144,12 @@ int main(int argc,char* argv[]) {
     {
       // Admin interpreter
       CAdmTcl tcl;
-      DBG("*** Start admin-TCL script ***\n");
-      rrr = tcl.Init() ? -2 : tcl.EvalFile("./tcl/admin.tcl");
+      strcpy((char*)appsHome,"admin.tcl");
+      DBG("*** Start admin-TCL script <%s> ***\n",appsHomeArr);
+      rrr = tcl.Init() ? -2 : tcl.EvalFile(appsHomeArr);
     }
   }
-  LOG(L_NOTICE,">Main>: Exit OK >%d<\n",rrr);
+  LOG(L_NOTICE,"Main: Exit OK >%d<\n",rrr);
   return rrr;
 }
 

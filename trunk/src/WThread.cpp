@@ -70,13 +70,13 @@ uInt CWThread::tmDelta() {
 // Update alarm timer for signal thread, disable the old one
 static void newSigThEv(uLong tn,uChar sThId) {
   uInt dlt = g_evThrdArr[sThId]->getKATime();
-  uInt kaTm = dlt / 3;
-  //DBG("newSigTnEv> sigThId=%u check Alarm tmOut=%u\n",sThId+1,(uInt)(5*kaTm));
+  uInt kaTm = dlt / 2;
   if((tn - g_evThrdArr[sThId]->getTm()) > kaTm) {
     DBG("newSigTnEv sigThId=%u new check Alarm Now-%u/%u tmOut=%u\n",
 	sThId+1,(uInt)tn,(uInt)g_evThrdArr[sThId]->getTm(),dlt);
-    g_evThrdArr[sThId]->setTm(tn);  // Store Time of last tmOut
-    tmQueue.set(3+dlt,TOut_sigThAlrm,HkCId,sThId+1);
+    // save time of last tmOut
+    g_evThrdArr[sThId]->setTm(tn);
+    tmQueue.set(7u+dlt,TOut_sigThAlrm,HkCId,sThId+1);
   }
 }
 
@@ -157,9 +157,10 @@ uShort CWThread::getEvent() {
 	pe = NULL;
 	return 0x0;  // reload wrkTcl-Script
       }
-      if(evType == (TOut_Shift + TOut_DelCtxt)) {
-	// tmOut to delete context
+      if(evType == Evnt_DelCtxt) {
+	// Event to delete context
 	pCont = (CContext*)(pe->getCId());
+	pCont->lock();
 	continue;    // Wait new event
       }
       if(HkCId != pe->getCId()) { // Not hauseKeep
@@ -220,9 +221,9 @@ uShort CWThread::getEvent() {
       DBG("CWThread::getEvent===> %u %s\n",pCont->cId,(xRet ? "Go_in_Tcl" : "Get_new_Ev"));
       if(xRet)
 	return xRet;    // return in TCL
-      continue;         // Wait new event
     } else
-      continue;         // Wait new event
+      pCont = NULL;
+    continue;         // Wait new event
 gNewCtx:
     if(!stopNewCtxt) {
       // Factory to produce new context & add it to hash
@@ -241,6 +242,9 @@ gNewCtx:
   }
 }
 
+extern char appsHomeArr[];
+extern const char* appsHome;
+
 void* CWThread::go() {
   stat = TH_RUN;
   while(!eFlag) {
@@ -250,10 +254,11 @@ void* CWThread::go() {
       DBG("CWThread::go %u YIELD %d<>%d\n",wtId,nReload,nRun);
       yield();
     }
-    DBG("CWThread::go %u YIELD_End %d<>%d\n",wtId,nReload,nRun);
     nReload = nRun;
-    if(Tcl.EvalFile("./tcl/wrkThread.tcl")) {
-      LOG(L_CRIT,"CWThread::go %u> Reload TCL-Script Now=%u\n",wtId,(uInt)tNow());
+    strcpy((char*)appsHome,"wrkThread.tcl");
+    DBG("CWThread::go %u wrkThread.tcl %d<>%d %s\n",wtId,nReload,nRun,appsHomeArr);
+    if(Tcl.EvalFile(appsHomeArr)) {
+      LOG(L_CRIT,"CWThread::go %u Reload TCL-Script Now=%u\n",wtId,(uInt)tNow());
       // Put Evnt_HsKeepCtxt - Inform HauseKeep about fail wrkTcl
       uInt ctxId = pCont ? pCont->getId() : 0u;
       CEvent* ev = CEvent::newEv(HkCId,Evnt_HsKeepCtxt,ctxId,hk_wTclFail);
@@ -261,7 +266,7 @@ void* CWThread::go() {
       ev->sign();
     }
   }
-  LOG(L_WARN,"CWThread::go %u> TERMINATED\n",wtId);
+  LOG(L_WARN,"CWThread::go %u TERMINATED\n",wtId);
   return NULL;
 }
 

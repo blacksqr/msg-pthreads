@@ -50,13 +50,13 @@ CContext::CContext(uInt i): cId(i),ctxtType(0x0),rfCount(0x01) {
 }
 
 CContext::~CContext() {
-  DBG("Context::~CContext> cId=%u\n",cId);
+  DBG("Context::~CContext cId=%u\n",cId);
   unlock();
 }
 
 uInt CContext::reservId() {
   CSglLock sl(CContext::cGlIdm);
-  DBG("Context::reservId> GcId=%u\n",cGlId+1);
+  DBG("Context::reservId GcId=%u\n",cGlId+1);
   return ++cGlId;
 }
 
@@ -77,36 +77,37 @@ void CContext::setTimer(uLong tm,uChar type,uShort f) {
   uChar b = type % 8;
   timerFlags[a] |= _tmFlg_[b]; // 0x01<<b;
   tmQueue.set(tm,type,cId,f);
-  DBG("Context::setTimer> ID-%u tmType=%u tOut=%u\n",cId,type,(uInt)tm);
+  DBG("Context::setTimer ID-%u tmType=%u tOut=%u\n",cId,type,(uInt)tm);
 }
 void CContext::delTimer(uChar type) {
   uChar a = type / 8;
   uChar b = type % 8;
   timerFlags[a] &= ~_tmFlg_[b]; // ~(0x01<<b);
-  DBG("Context::delTimer> ID-%u tmType=%u\n",cId,type);
+  DBG("Context::delTimer ID-%u tmType=%u\n",cId,type);
 }
 uChar CContext::isTimerOn(uChar type) {
   uChar a = type / 8;
   uChar b = type % 8;
-  DBG("Context::isTimerOn> ID-%u tmType=%u\n",cId,type);
+  DBG("Context::isTimerOn ID-%u tmType=%u\n",cId,type);
   return (timerFlags[a] & _tmFlg_[b]);
 }
 
 void CContext::remRef() {
   --rfCount;
-  unlock();
   if(!rfCount) {
-    DBG("Context::remRef> %u Ref>%d Seq %u<>%u\n",cId,rfCount,seq0,seq1);
+    DBG("Context::remRef %u   Seq %u<>%u\n",cId,seq0,seq1);
     delHook();
-  } else
+  } else {
     remRefHook();
+    unlock();
+  }
 }
 
 void CContext::destruct() {
   DBG("Context::destruct %u Ref-%u Type=%d Seq %u<>%u\n",cId,rfCount,ctxtType,seq0,seq1);
   hashCntxt.del(cId);
   // Set del tmOut - 0,03s delete obj
-  tmQueue.set(3u,TOut_DelCtxt,(uInt)this);
+  send(Evnt_DelCtxt,(uInt)this);
 }
 
 CContext* CContext::findCtxt(uInt id) {
@@ -116,7 +117,7 @@ CContext* CContext::findCtxt(uInt id) {
 void CContext::Halt() {
   while(onHalt())
     yield();
-  DBG("Context::Halt> %u Ref>%d Seq %u<>%u\n",cId,rfCount,seq0,seq1);
+  DBG("Context::Halt %u Ref>%d Seq %u<>%u\n",cId,rfCount,seq0,seq1);
   destruct();
 }
 
@@ -125,18 +126,18 @@ void CContext::Halt() {
 CHKContext::CHKContext(uInt i): CContext(i) {
   HkCId = i;
   ctxtType = C_CTXT_HK;
-  LOG(L_NOTICE,"CHKContext::CHKContext> cId=%u Seq %u<>%u\n",cId,seq0,seq1);
+  LOG(L_NOTICE,"CHKContext::CHKContext cId=%u Seq %u<>%u\n",cId,seq0,seq1);
   unlock();
 }
 
 CHKContext::~CHKContext() {
-  LOG(L_NOTICE,"<CHKContext::~CHKContext> destruction of HauseKeep context!!!\n");
+  LOG(L_NOTICE,"CHKContext::~CHKContext destruction of HauseKeep context!!!\n");
 }
 
 uShort CHKContext::Run(CEvent* pe,CWThread* pwt) {
   uChar evId = pe->getEv();
   // save state of sending sign.thread
-  DBG("CHKContext::Run> EventId=%u SThrd=%d\n",evId,pe->sigThId());
+  DBG("CHKContext::Run EventId=%u SThrd=%d\n",evId,pe->sigThId());
   if(evId == Evnt_Que12Full) {
     // on Evnt_Que12Full message - LOG output ...
     LOG(L_ERR,"CHKContext::Run cId=%u %u Evnt_Que12Full\n",cId,pwt->getWTId());
@@ -163,28 +164,29 @@ uShort CHKContext::Run(CEvent* pe,CWThread* pwt) {
     return 0x0;
   }
   // if... {...}
-  LOG(L_ERR,"<CHKContext::Run %u> Unhandled Event=%u\n",pwt->getWTId(),evId);
+  LOG(L_ERR,"CHKContext::Run %u Unhandled Event=%u\n",pwt->getWTId(),evId);
   return 0x01; // Error proc in Tcl
 }
 
 uShort CHKContext::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
-  static char rr = 0x0;
-  rr = 0x01 - rr;
-  DBG("CHKContext::onTimer> EventId=0x%X - %s\n",pe->getEv(),rr ? "LOOP" : "In TCL");
+  DBG("CHKContext::onTimer EventId=0x%X\n",pe->getEv());
   switch(pe->getEv()) {
     case TOut_sigThAlrm: {
       // on TOut_sigThAlrm - signal-thread Alarm
-      uChar sThId = pe->sigThId() - 1;
-      uInt dlt = g_evThrdArr[sThId]->getTm();
-      uInt tn  = tNn - dlt;
-      DBG("<CHKContext::onTimer> Signal thread %s[%u] Alarm Now=%u  %u  %u\n",
-	  g_evThrdArr[sThId]->thName(),sThId,(uInt)tNn,(uInt)dlt,
-	  (uInt)g_evThrdArr[sThId]->getKATime());
-      if(tn > 2u * g_evThrdArr[sThId]->getKATime()) {
-	// some actions ... HookFunction !!!
-	LOG(L_ERR,"<CHKContext::onTimer> Error Signal thread %s[%u] no responce %u/%u\n",
-	    g_evThrdArr[sThId]->thName(),sThId+1,tn,(uInt)dlt);
-      }
+      uChar sThId = pe->sigThId();
+      if(sThId--) {
+	uInt dlt = g_evThrdArr[sThId]->getTm();
+	uInt tn  = tNn - dlt;
+	DBG("CHKContext::onTimer Signal thread %s[%u] Alarm Now=%u  %u  %u\n",
+	    g_evThrdArr[sThId]->thName(),sThId,(uInt)tNn,(uInt)dlt,
+	    (uInt)g_evThrdArr[sThId]->getKATime());
+	if(tn > 2u * g_evThrdArr[sThId]->getKATime()) {
+	  // some actions ... HookFunction !!!
+	  LOG(L_ERR,"CHKContext::onTimer Error Signal thread %s[%u] no responce %u/%u\n",
+	      g_evThrdArr[sThId]->thName(),sThId+1,tn,(uInt)dlt);
+	}
+      } else
+	LOG(L_ERR,"CHKContext::onTimer Error TOut_sigThAlrm sThId==0\n");
       break;
     }
     case TOut_HsKeep: {
@@ -197,7 +199,7 @@ uShort CHKContext::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
 	  // Thread process event
 	  uInt tt = tNn - pWrkThArr[k]->gMTime();
 	  if(tt > 11) {
-	    LOG(L_ERR,"<CHKContext::onHsKeep WThread %u State %u proc.msg %u BLOCKED %u s\n",
+	    LOG(L_ERR,"CHKContext::onHsKeep WThread %u State %u proc.msg %u BLOCKED %u s\n",
 		k+1,st,pWrkThArr[k]->gMId(),tt);
 	    // some action ...
 	  }
@@ -215,7 +217,7 @@ uShort CHKContext::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
       break;
     }
     default:
-      LOG(L_ERR,"<CHKContext::onTimer> Error unknow timer Ev=%u\n",pe->getEv());
+      LOG(L_ERR,"CHKContext::onTimer Error unknow timer Ev=%u\n",pe->getEv());
   }
-  return rr;
+  return 0u;
 }

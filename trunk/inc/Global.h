@@ -52,18 +52,18 @@ extern const int log_facility;
 #define hk_wTclFail      0x01
 
 // Context Events =========================
-#define Evnt_wThrdEnd    0x01   // Term work thread TCL-Script
+#define Evnt_DelCtxt     0x01   // Event to remove context
 #define Evnt_HsKeepCtxt  0x02   // Hause keep problem in some context
 #define Evnt_SThAlive    0x03   // signaling thread keepAlive event
 #define Evnt_EndSigTh    0x04   // Term signaling thread
-#define Evnt_Que12Full   0x05   // Application queue 50% full
+#define Evnt_wThrdEnd    0x05   // Term work thread TCL-Script
+#define Evnt_Que12Full   0x06   // Application queue 50% full
 // End of hauseKeep events
 #define Evnt_TstCntxt    0x09   // event to create test Context
 #define Evnt_TstSeqw     0x0A   // event from test sign thread
 #define Evnt_SaveData    0x0B   // To store data in Cash
 #define Evnt_DbReady     0x0C   // Data stored in DB
 #define Evnt_StoreInDb   0x0D   // Store new set of data in DB
-#define Evnt_DelCtxt     0x10   // to remove test context
 
 #define Evnt_sipCtxt     0x11   // New parser context
 #define Evnt_sipMsgRq    0x12   // new SIP Request
@@ -71,28 +71,26 @@ extern const int log_facility;
 
 #define Evnt_NewCall     0x14   // icoming call
 #define Evnt_Idle        0x15   // call closed
-#define Evnt_Discnct     0x16   // start disconnecting
-#define Evnt_Connct      0x17   // call online
+#define Evnt_Connct      0x16   // call online
 
 // TimeOut ID's ===========================
 #define TOut_NoTmOut     0x00
-#define TOut_DelCtxt     0x01   // Del context
-#define TOut_HsKeep      0x02   // System Check
-#define TOut_sigThAlrm   0x03   // signal-thread Alarm
-#define TOut_FlushCash   0x04   // Flush cash context
+#define TOut_HsKeep      0x01   // System Check
+#define TOut_sigThAlrm   0x02   // signal-thread Alarm
+#define TOut_FlushCash   0x03   // Flush cash context
 // End of system time-out's
-#define TOut_LstSysTm    0x04
+#define TOut_LstSysTm    0x03
 
 // Normal timer id
-#define TOut_DTMF        0x05
-#define TOut_PIN         0x06
-#define TOut_DLI         0x07
-#define TOut_RemConn     0x08
-#define TOut_LocConn     0x09
-#define TOut_EndCall     0x0A
-#define TOut_FlushDb     0x0B
+#define TOut_DTMF        0x04
+#define TOut_PIN         0x05
+#define TOut_DLI         0x06
+#define TOut_RemConn     0x07
+#define TOut_LocConn     0x08
+#define TOut_EndCall     0x09
+#define TOut_FlushDb     0x0A
 // number of defined TimeOuts
-#define TOut_MAX         0x0C
+#define TOut_MAX         0x0B
 
 // shift for timeout ID
 const uChar TOut_Shift = 0x60;

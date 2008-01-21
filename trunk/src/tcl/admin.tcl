@@ -91,7 +91,7 @@ puts ">aTcl: HsKeep tOut        [apps tout 555 2 0]"
 # make NN1 and NN2 msg/s TT1 and TT2 in 0.1 s
 puts ">aTcl: start xtst  thread [sThrd start xtst 777  999  10 10]"
 puts ">aTcl: start xtst  thread [sThrd start xtst 555  3777 18 2]"
-puts ">aTcl: start xtst  thread [sThrd start xtst 3777 555  1  19]"
+puts ">aTcl: start xtst  thread [sThrd start xtst 3777 555  2  18]"
 # Alarm generation thread NN1 NN@ msg/s and tmOut alarm
 #puts ">aTcl: start aTst  thread [sThrd start atst 9 5]"
 # UDP Thread - to read SIP msg
