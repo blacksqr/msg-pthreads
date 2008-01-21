@@ -134,9 +134,6 @@ int main(int argc,char* argv[]) {
       DBG("*** Start admin-TCL script ***\n");
       rrr = tcl.Init() ? -2 : tcl.EvalFile("./tcl/admin.tcl");
     }
-    // Stop timer thread
-    tmQueue.set(tNow(),TOut_NoTmOut,HkCId);
-    sleep(1);
   }
   LOG(L_NOTICE,">Main>: Exit OK >%d<\n",rrr);
   return rrr;
