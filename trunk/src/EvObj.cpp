@@ -27,17 +27,13 @@ pCEvent CEvent::newEv(uInt i,short e,pVoid p,uChar ti,char x) {
   return new (CEvent_mem.pAlloc()) CEvent(i, e, p, ti, x);
 }
 
-CEvent::CEvent(uInt i,short e,uInt d,uChar tId,char x): cId(i),Event(e) {
+CEvent::CEvent(uInt i,short e,uInt d,uChar tId,char x): cId(i),Event(e),sgThId(tId),nCtxt(x) {
   pData  = (pVoid)d;
-  sgThId = tId;
-  nCtxt  = x; // Gen. new Cntxt flag
   DBG("CEvent::CEvent#> %u %d %u %u %d\n",cId,Event,(uInt)pData,sgThId,nCtxt);
 }
 
-CEvent::CEvent(uInt i,short e,pVoid p,uChar tId,char x): cId(i),Event(e) {
+CEvent::CEvent(uInt i,short e,pVoid p,uChar tId,char x): cId(i),Event(e),sgThId(tId),nCtxt(x) {
   pData  = p;
-  sgThId = tId;
-  nCtxt  = x; // Gen. new Cntxt flag
   DBG("CEvent::CEvent$> %u %d 0x%X %u %d\n",cId,Event,(uInt)pData,sgThId,nCtxt);
 }
 

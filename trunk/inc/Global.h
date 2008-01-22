@@ -40,7 +40,7 @@ extern int errno;
 extern const int log_facility;
 
 // max number of working threads
-#define MAX_N_WTHREAD 32
+#define MAX_N_WTHREAD    48
 
 // Contetxt State-Automate ================
 #define Stat_NoStat      0x00
@@ -53,11 +53,12 @@ extern const int log_facility;
 
 // Context Events =========================
 #define Evnt_DelCtxt     0x01   // Event to remove context
-#define Evnt_HsKeepCtxt  0x02   // Hause keep problem in some context
-#define Evnt_SThAlive    0x03   // signaling thread keepAlive event
-#define Evnt_EndSigTh    0x04   // Term signaling thread
-#define Evnt_wThrdEnd    0x05   // Term work thread TCL-Script
-#define Evnt_Que12Full   0x06   // Application queue 50% full
+#define Evnt_PreDelCtxt  0x02   // Event to remove context
+#define Evnt_HsKeepCtxt  0x03   // Hause keep problem in some context
+#define Evnt_SThAlive    0x04   // signaling thread keepAlive event
+#define Evnt_EndSigTh    0x05   // Term signaling thread
+#define Evnt_wThrdEnd    0x06   // Term work thread TCL-Script
+#define Evnt_Que12Full   0x07   // Application queue 50% full
 // End of hauseKeep events
 #define Evnt_TstCntxt    0x09   // event to create test Context
 #define Evnt_TstSeqw     0x0A   // event from test sign thread

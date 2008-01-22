@@ -39,6 +39,7 @@ CCashCtxt::CCashCtxt(uInt i,uInt db,uShort tm,uShort m):
 }
 
 CCashCtxt::~CCashCtxt() {
+  iCsCtxt = 0u;
   DBG("CashCtxt::~CCashCtxt cId=%u> cshSize=%u Flg=%d\n",cId,cshSize,flg);
 #if 0
   // send cash in DB

@@ -16,8 +16,7 @@
 #include <EvThread.h>
 
 // Global context ID
-uInt CContext::cGlId      = 0;
-uInt CCnxtMap::numOfCntxt = 0;
+uInt CContext::cGlId = 0u;
 CPMutex CContext::cGlIdm;
 // House-keeping context ID
 uInt HkCId;
@@ -28,11 +27,11 @@ CCnxtMap hashCntxt;
 // Flag to stop new context
 char stopNewCtxt ='\0';
 
+// Called from context destructor
 void CCnxtMap::del(const uInt n) {
   CSglLock sl(m);
-  DBG("CCtxtMap.erase[%d] %u\n",n,numOfCntxt);
-  erase(n); // Called in context destructor
-  --numOfCntxt;
+  DBG("CCtxtMap.erase[%d] %u\n",n,size());
+  erase(n);
 }
 
 // ==================================================== 
@@ -43,10 +42,9 @@ CContext::CContext(uInt i): cId(i),ctxtType(0x0),rfCount(0x01) {
     // Add new context ID in hash
     CSglLock sl(hashCntxt.getM());
     hashCntxt[cId] = this;
-    ++CCnxtMap::numOfCntxt;
   }
   seq0 = seq1 = '\0';
-  DBG("Context::CContext %u Tot-%u\n",cId,CCnxtMap::numOfCntxt);
+  DBG("Context::CContext %u Tot-%u\n",cId,hashCntxt.size());
 }
 
 CContext::~CContext() {
@@ -96,11 +94,14 @@ void CContext::remRef() {
   --rfCount;
   if(!rfCount) {
     DBG("Context::remRef %u   Seq %u<>%u\n",cId,seq0,seq1);
+    lock();
     delHook();
-  } else {
+  } else if(rfCount > 0) {
     remRefHook();
     unlock();
-  }
+  } else
+    LOG(L_ERR,"Context::remRef Error %u Seq %u<>%u Ref=%d\n",
+	cId,seq0,seq1,rfCount);
 }
 
 void CContext::destruct() {
@@ -131,6 +132,8 @@ CHKContext::CHKContext(uInt i): CContext(i) {
 }
 
 CHKContext::~CHKContext() {
+  HkCId = 0u;
+  pHKContext = NULL;
   LOG(L_NOTICE,"CHKContext::~CHKContext destruction of HauseKeep context!!!\n");
 }
 
@@ -168,13 +171,15 @@ uShort CHKContext::Run(CEvent* pe,CWThread* pwt) {
   return 0x01; // Error proc in Tcl
 }
 
+extern char GlobEvThreadStoped;
+
 uShort CHKContext::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
   DBG("CHKContext::onTimer EventId=0x%X\n",pe->getEv());
   switch(pe->getEv()) {
     case TOut_sigThAlrm: {
       // on TOut_sigThAlrm - signal-thread Alarm
       uChar sThId = pe->sigThId();
-      if(sThId--) {
+      if(!GlobEvThreadStoped && sThId--) {
 	uInt dlt = g_evThrdArr[sThId]->getTm();
 	uInt tn  = tNn - dlt;
 	DBG("CHKContext::onTimer Signal thread %s[%u] Alarm Now=%u  %u  %u\n",

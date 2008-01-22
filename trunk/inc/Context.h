@@ -25,27 +25,24 @@ class CContext;
 // ===============================================
 
 class CCnxtMap:
-public __gnu_cxx::hash_map < uInt,pVoid,__gnu_cxx::hash<uInt>,eqUInt >
+public __gnu_cxx::hash_map < uInt,CContext*,__gnu_cxx::hash<uInt>,eqUInt >
 {
   friend class CContext;
  protected:
   CPMutex m;
-  pVoid getv(const uInt n) {
+  CContext* getv(const uInt n) {
     iterator i = find(n);
     return (i==end()) ? NULL : (i->second);
   }
-  static uInt numOfCntxt;
  public:
-  CCnxtMap() {
-    numOfCntxt = 0u;
-  }
-  virtual ~CCnxtMap() {
-    DBG("CCnxtMap::~CCnxtMap %u\n",numOfCntxt);
-  }
+  CCnxtMap() {}
+  virtual ~CCnxtMap() { DBG("CCnxtMap::~CCnxtMap %u\n",size()); }
   CPMutex& getM() { return m; }
   CContext* get(const uInt n) {
     CSglLock sl(m);
-    return (CContext*)getv(n);
+    if(size())
+      return getv(n);
+    return NULL;
   }
   void del(const uInt n);
 };
@@ -77,7 +74,8 @@ class CContext {
   // called from WThread => Return ~0-in TCL; 0-get new Event
   virtual uShort Run(CEvent* pe,CWThread* pwt)     = 0;
   virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt=NULL) = 0;
-  virtual void remRefHook() {}  // Hook after TCL-Script
+  // Hook after TCL-Script
+  virtual void remRefHook() { DBG("Context::remRefHook %u Seq %u<>%u\n",cId,seq0,seq1); }
   // On apps exit - halt still running ctxt's
   //  will be called until return '\0'
   virtual char onHalt()            = 0;

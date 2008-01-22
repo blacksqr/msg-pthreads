@@ -88,7 +88,7 @@ int CWrkThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	CWThread::wStop();
 	DBG("CWrkThrd::cmdProc> Stop %d WrkThread\n",N);
 	for(k=0x0; k<N; ++k) {
-	  CEvent* ev = CEvent::newEv(HkCId,Evnt_wThrdEnd);
+	  CEvent* ev = CEvent::newEv(0u,Evnt_wThrdEnd);
 	  ev->put('x');
 	  ev->sign();
 	  yield();
@@ -105,9 +105,10 @@ int CWrkThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	CWThread::reloadTcl();
 	DBG("CWrkThrd::cmdProc> Reload WrkTcl-Script\n");
 	for(k=0x0; k<CWThread::nRThrd(); ++k) {
-	  CEvent* ev = CEvent::newEv(HkCId,Evnt_wThrdEnd);
+	  CEvent* ev = CEvent::newEv(0u,Evnt_wThrdEnd);
 	  ev->put('x');
 	  ev->sign();
+	  yield();
 	}
 	tSetResult(tSetObj((short)k));
       }
@@ -123,6 +124,8 @@ int CWrkThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
   }
   return TCL_OK;
 }
+
+extern char GlobEvThreadStoped;
 
 // new TCL commant for coomon Apps taks - <apps>
 extern uInt HkCId;
@@ -172,23 +175,7 @@ int CComApp::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	    g_evThrdArr[k]->stop();
 	  }
 	}
-      }
-      break;
-    case 'w': // woff - exit all work threads & timer
-      if(!strcmp("off",sCmd) && (argc == 2)) {
-	struct timespec req;
-	GlAppsFlag |= APPL_EXIT;  // Stop timer
-	CWThread::wStop();
-	CWThread::reloadTcl();
-	while(CWThread::nRThrd()) {
-	  DBG("CComApp::cmdProc> woff %d\n",CWThread::nRThrd());
-	  CEvent* ev = CEvent::newEv(HkCId,Evnt_wThrdEnd);
-	  ev->put();
-	  ev->sign();
-	  req.tv_sec  = 0;
-	  req.tv_nsec = 33333333;  // wait 0.03 sec
-	  (void)nanosleep(&req, NULL);
-	}
+	GlobEvThreadStoped = 'x';
       }
       break;
     case 'e': // endNC  - stop new context factory
@@ -202,15 +189,28 @@ int CComApp::cmdProc(int argc,Tcl_Obj* const argv[]) {
     case 'h': // halt - running context's
       if(!strcmp("alt",sCmd) && (argc == 2)) {
 	// Delete all context from hashCntxt
-	CContext* pc = NULL;
 	CCnxtMap::iterator I = hashCntxt.begin();
 	while(I != hashCntxt.end()) {
-	  pc = (CContext*)((*I).second);
+	  uInt cid     = (*I).first;
+	  CContext* pc = (*I).second;
 	  if(pc) {
 	    DBG("CComApp::cmdProc Halt context[%u]\n",pc->getId());
-	    pc->Halt();
+	    pc->send(Evnt_PreDelCtxt,cid);
 	  }
-	  I = hashCntxt.begin();
+	  ++I;
+	}
+      }
+      break;
+    case 'w': // woff - exit all work threads & timer
+      if(!strcmp("off",sCmd) && (argc == 2)) {
+	GlAppsFlag |= APPL_EXIT;  // Stop timer
+	CWThread::wStop();
+	CWThread::reloadTcl();
+	for(uChar k=0u; k<MAX_N_WTHREAD; ++k) {
+	  DBG("CComApp::cmdProc woff %d\n",CWThread::nRThrd());
+	  CEvent* ev = CEvent::newEv(0u,Evnt_wThrdEnd);
+	  ev->put();
+	  ev->sign();
 	}
       }
       break;

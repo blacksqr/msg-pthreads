@@ -152,7 +152,7 @@ uShort CWThread::getEvent() {
       evType = pe->getEv();
       DBG("CWThread::getEvent %u> Event Ctxt-%u Type=0x%X sigTn=%u\n",
 	  wtId,pe->getCId(),evType,pe->sigThId());
-      if(evType == Evnt_wThrdEnd) {
+      if((evType == Evnt_wThrdEnd) && !pe->getCId()) {
 	CEvent::delEv(pe);
 	pe = NULL;
 	return 0x0;  // reload wrkTcl-Script
@@ -160,7 +160,6 @@ uShort CWThread::getEvent() {
       if(evType == Evnt_DelCtxt) {
 	// Event to delete context
 	pCont = (CContext*)(pe->getCId());
-	pCont->lock();
 	continue;    // Wait new event
       }
       if(HkCId != pe->getCId()) { // Not hauseKeep
@@ -170,13 +169,13 @@ uShort CWThread::getEvent() {
 	}
 	pCont = hashCntxt.get(pe->getCId());
       } else
-	pCont = pHKContext;  // HausKeep
-      if(pCont && pCont->rfCount) {
-	pCont->addRef();
+	pCont = pHKContext; // HausKeep
+      if(pCont && pCont->rfCount && (evType != Evnt_PreDelCtxt)) {
+	pCont->addRef();     // to prevent destruction
 	seq = pCont->seq0++; // save msg-get seq. & inc. it
 	DBG("_LOCK %u set Seq %d< %d >%d\n",pCont->cId,pCont->seq0,seq,pCont->seq1);
       } else {
-	LOG(L_WARN,"CWThread::getEvent> no Context found cId=%u\n",pe->getCId());
+	LOG(L_WARN,"CWThread::getEvent> Context continue cId=%u\n",pe->getCId());
 	pCont = NULL;
 	continue; // no Context found - wait new event
       }

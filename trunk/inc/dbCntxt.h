@@ -27,7 +27,10 @@ class CDbCntx: public CContext {
   virtual char onHalt();
  public:
   CDbCntx(uInt i);
-  ~CDbCntx() { DBG("CDbCntx::~CDbCntx cId=%u\n",cId); }
+  ~CDbCntx() {
+    iCsCtxt = 0u;
+    DBG("CDbCntx::~CDbCntx cId=%u\n",cId);
+  }
   void InsData(CWThread* pwt);
 };
 

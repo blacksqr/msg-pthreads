@@ -21,6 +21,7 @@
 
 // ID of House-keeping context
 extern uInt HkCId;
+char GlobEvThreadStoped  = '\0';
 uChar CEvThrd::g_sigThId = '\0';
 pCEvThrd g_evThrdArr[MAX_N_STHREAD];
 
