@@ -66,7 +66,7 @@ extern uInt HkCId;
 
 _FFInd CFifo::addEl(pCEvent p) {
   DBG("CFifo::addEl> 0x%X<>0x%X\n",beg,end);
-  while(nFf > (FfQueSize - 0xC))
+  while(nFf > (FfQueSize - 0x10))
     yield();  // Queue fast full - yield
   if((nFf > gr2) && gFlg) {
     // Send warning msg Queue 50% full

@@ -35,7 +35,6 @@ CWThread::CWThread(uChar id):
   CThreadObj('x'),nMsgTot(0u),pe(NULL),pCont(NULL),
   wtId(++id),seq('\0'),nMsg(0u),msgTm(0u),stat(0u)
 {
-  ++nRun;
   pWrkThArr[wtId-1] = this;
   stat = TH_INST;
   Tcl.Init(this);
@@ -47,7 +46,6 @@ CWThread::CWThread(uChar id):
 
 CWThread::~CWThread() {
   pWrkThArr[wtId-1] = NULL;
-  --nRun;
   LOG(L_WARN,"CWThread::~CWThread %u %u> TERMINATED Now=%u\n",wtId,nRun,(uInt)tNow());
 }
 
@@ -136,7 +134,7 @@ uShort CWThread::getEvent() {
       uInt dltTm = Tx0 + Tx1 + Tx2 + Tx3;
       if(dltTm > 10000000u) {
 	dltTm /= 1000;  // Delta Tm in 0.1s
-	LOG(L_ERR,"CWThread::getEvent Stat %u A=%u Msg/s=%u> %u \t%u \t%u \t%u \t%u<>%u \t%u\n",
+	LOG(L_ERR,"CWThread::getEvent Stat %u A=%u Msg/s=%u> \t%u   %u   %u   %u \t%u<>%u \t%u\n",
 	    wtId,dltTm,(1000*nMsg)/dltTm,Tx0/nMsg,Tx1/nMsg,Tx2/nMsg,Tx3/nMsg,nMsg,nMsgTot,nWait);
 	Tx0 = Tx1 = Tx2 = Tx3 = nMsg = nMsgTot = nWait = 0u;
       }
@@ -245,6 +243,7 @@ extern char appsHomeArr[];
 extern const char* appsHome;
 
 void* CWThread::go() {
+  ++nRun;
   stat = TH_RUN;
   while(!eFlag) {
     ++nReload;
@@ -265,6 +264,7 @@ void* CWThread::go() {
       ev->sign();
     }
   }
+  --nRun;
   LOG(L_WARN,"CWThread::go %u TERMINATED\n",wtId);
   return NULL;
 }

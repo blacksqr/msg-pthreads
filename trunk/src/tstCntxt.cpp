@@ -50,7 +50,6 @@ CTstCntx::~CTstCntx() {
 }
 
 uShort CTstCntx::Run(CEvent* pe,CWThread* pwt) {
-  ++nm;
   DBG("CTstCntx::Run cId=%u EventId=%u %u<>%u\n",cId,pe->getEv(),nm,nMsg);
   if(nm == nMsg) {
     DBG("CTstCntx::Run save_destruct cId=%u\n",cId);
@@ -59,7 +58,7 @@ uShort CTstCntx::Run(CEvent* pe,CWThread* pwt) {
     nMsg = 0u;
     return 0x1;
   }
-  return 0x0;
+  return nm++ ? 1u : 0x0;
 }
 
 uShort CTstCntx::onTimer(uLong tn,CEvent* pe,CWThread* pwt) {

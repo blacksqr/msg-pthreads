@@ -84,18 +84,21 @@ int CWrkThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
     case 'o': // off - stop N wrk. thread
       if(!strcmp("ff",sCmd) && (argc == 3)) {
 	short k, N = 0;
+	short nt = (short)CWThread::nRThrd();
 	(void)interp->tGetVal(argv[2], N);
+	nt -= N;
 	CWThread::wStop();
 	DBG("CWrkThrd::cmdProc> Stop %d WrkThread\n",N);
 	for(k=0x0; k<N; ++k) {
 	  CEvent* ev = CEvent::newEv(0u,Evnt_wThrdEnd);
-	  ev->put('x');
+	  ev->put();
 	  ev->sign();
 	  yield();
 	  DBG("CWrkThrd::cmdProc> Stop WrkThread %d\n",CWThread::nRThrd());
 	}
-	tSetResult(tSetObj((short)CWThread::nRThrd()));
-	yield();
+	while(nt != (short)CWThread::nRThrd())
+	  yield();
+	tSetResult(tSetObj(nt));
 	CWThread::wStart();
       }
       break;
