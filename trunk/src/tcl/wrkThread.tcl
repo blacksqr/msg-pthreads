@@ -22,6 +22,18 @@ puts "Set locking_mode=NORMAL >[db eval {PRAGMA locking_mode = NORMAL;}]"
 puts "Set Read uncommitted >[db eval {PRAGMA read_uncommitted = 1;}]"
 puts "Set Page size >[db eval {PRAGMA page_size = 16384;}]"
 
+#######################################
+
+#puts ">aTcl: Tcl DB commands"
+#load libdb_tcl-4.6.so
+#puts ">aTcl: berkdb create env"
+#set e [berkdb env -create -home /tmp/Db -thread -cdb]
+#puts ">aTcl: berkdb open in Env"
+#set db [berkdb open -env $e -thread -create -hash tables.db test]
+#set db1 [berkdb open -env $e -thread -create -btree tables1.db test1]
+
+#######################################
+
 proc on_busy {cnt} {
     global wThId
     puts $sOut ">TID<$wThId> on_busy $cnt"
@@ -82,9 +94,10 @@ while 1 {
 	    puts       ">TID<$wThId> HausKeep type $cTp, Res=>[appSt]"
 	} 2 {
 	    # Test Context
-	    #after 3
-	    puts $sOut ">TID<$wThId> Test Context type $cTp, Ev=> $Ev"
-	    puts       ">TID<$wThId> Test Context type $cTp, Ev=> $Ev"
+	    after 1
+	    if {$wThId == 3} {
+		puts $sOut ">TID<$wThId> Test Context type $cTp, Ev=> $Ev"
+	    }
 	} 3 {
 	    # DB Context
 	    puts ">TID<$wThId> TRANS-Result tstCtxt $Ev>[db transaction [list tstCtxt $Ev]]<"

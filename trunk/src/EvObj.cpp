@@ -69,18 +69,16 @@ _FFInd CFifo::addEl(pCEvent p) {
   while(nFf > (FfQueSize - 0x10))
     yield();  // Queue fast full - yield
   if((nFf > gr2) && gFlg) {
-    // Send warning msg Queue 50% full
-    LOG(L_WARN,"CFifo::addEl> 1/2 FULL beg=%d end=%d\n",beg,end);
     pCEvent pw = CEvent::newEv(HkCId,Evnt_Que12Full);
+    // Send warning msg Queue 50% full
+    LOG(L_WARN,"CFifo::addEl> 50%%-Full beg=%d end=%d\n",beg,end);
     gFlg = '\0';
     {
       CSglLock slr(rCnd);
-      CSglLock slw(wMut);
       pObj[--beg] = pw;
-      pObj[end++] = p;
-      return end;
     }
-  } else {
+  }
+  {
     CSglLock slw(wMut);
     pObj[end++] = p;
     return end;
