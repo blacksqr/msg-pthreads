@@ -20,7 +20,7 @@
 //                  012345678901234567890123456789012345
 const char* rStr = "asdfghjklqwertyuiopzxcvbnm0123456789";
 
-uInt RRand() {
+int RRand() {
   static CPMutex tm;
   CSglLock sl(tm);
   return random();
@@ -30,13 +30,10 @@ CDbCntx::CDbCntx(uInt i): CContext(i) {
   ctxtType = C_CTXT_DB;
 }
 
-void CDbCntx::InsData(CWThread* pwt) {
+pTcl_Obj CDbCntx::InsData(CTclInterp* pTcl) {
   short strLen, k;
   char rString[0xFF];
   char* cAr[3] = {NULL,NULL,NULL};
-  // get CTclInterp pointer
-  CWrkTcl& pTcl = pwt->getTcl();
-  // go in TCL - Set TCL-list - SQLite INS data
   for(short n=0; n<3; ++n) {
     strLen = 10 + RRand()%8;
     for(k=0; k<strLen; ++k)
@@ -46,14 +43,14 @@ void CDbCntx::InsData(CWThread* pwt) {
     cAr[n] = strdup(rString);
   }
   pTcl_Obj pOLst = Arr2tlst(cAr,3);
-  pTcl.tAddLstEl(pOLst,tSetObj((int)RRand()%99999));
-  pTcl.tAddLstEl(pOLst,tSetObj((int)RRand()%99999));
+  pTcl->tAddLstEl(pOLst,tSetObj(RRand()%99999));
+  pTcl->tAddLstEl(pOLst,tSetObj(RRand()%99999));
   strLen = 23 + RRand()%128;
   for(k=0; k<strLen; ++k)
     rString[k] = rStr[RRand()%36];
   rString[k] = '\0';
-  pTcl.tAddLstEl(pOLst,tSetObj(rString));
-  (void)pTcl.setVar("valTstLst",pOLst);
+  pTcl->tAddLstEl(pOLst,tSetObj(rString));
+  return pOLst;
 }
 
 uShort CDbCntx::Run(CEvent* pe,CWThread* pwt) {
@@ -68,7 +65,7 @@ uShort CDbCntx::Run(CEvent* pe,CWThread* pwt) {
       CCsItem::delItem(pItmList);
       pItmList = pp;
     }
-    DBG("CDbCntx::Run cId=%u> EventId=%u store nRec=%u\n",cId,pe->getEv(),nRec);
+    DBG("CDbCntx::Run EventId=%u store nRec=%u\n",pe->getEv(),nRec);
     return nRec;
   }
   return 0x0;
@@ -82,4 +79,14 @@ uShort CDbCntx::onTimer(uLong tn,CEvent* pe,CWThread* pwt) {
 char CDbCntx::onHalt() {
   DBG("CDbCntx::onHalt %u\n",cId);
   return '\0';
+}
+
+int CDbCntx::cmdProc(CWrkTcl* interp, int argc, Tcl_Obj* const argv[]) {
+  const char* sCmd = interp->tGetVal(argv[1]);
+  DBG("CDbCntx::cmdProc sCmd - %s\n",sCmd);
+  if(!strcmp(sCmd, "tstData")) {
+    Tcl_SetObjResult(interp->getInterp(),InsData(interp));
+    return TCL_OK;
+  }
+  return CContext::cmdProc(interp,argc,argv);
 }

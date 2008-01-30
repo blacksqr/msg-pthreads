@@ -46,9 +46,6 @@ CEvThrd::CEvThrd(uShort ka): sigThId(++(CEvThrd::g_sigThId)) {
   tmOfLastMsg = 0u;
 }
 
-// only check preConditions & Translate events in FSM-events
-extern CHKContext* pHKContext;
-
 void* CEvThrd::go() {
   CEvent* ev = NULL;
   {

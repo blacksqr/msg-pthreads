@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stlObj.h>
 #include <memPool.h>
+#include <workTcl.h>
 #include <dprint.h>
 
 class CWThread;
@@ -72,7 +73,7 @@ class CContext {
   virtual ~CContext();
   virtual void delHook() { delete this; }
   // called from WThread => Return ~0-in TCL; 0-get new Event
-  virtual uShort Run(CEvent* pe,CWThread* pwt)     = 0;
+  virtual uShort Run(CEvent* pe,CWThread* pwt)                   = 0;
   virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt=NULL) = 0;
   // Hook after TCL-Script
   virtual void remRefHook() { DBG("Context::remRefHook %u Seq %u<>%u\n",cId,seq0,seq1); }
@@ -84,6 +85,7 @@ class CContext {
   CContext(const CContext&);
   void operator = (const CContext&);
  public:
+  virtual int cmdProc(CWrkTcl* pTcl,int argc,Tcl_Obj* const argv[]);
   void addRef() { ++rfCount; }
   void remRef();
   uChar getCtxtType() { return ctxtType; }
@@ -116,7 +118,7 @@ typedef CContext* pContext;
 #define C_CTXT_HK 0x01
 
 // on House-keeping event context
-class CHKContext: public CContext {
+class CHKCtxt: public CContext {
   friend class CHsKeep;
  protected:
   // system runtime params
@@ -132,9 +134,10 @@ class CHKContext: public CContext {
   virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt);
   virtual char onHalt() { return '\0'; }
   void setHkTm(uLong tm,uChar type) { setTimer(tm,type); }
-  ~CHKContext();
+  ~CHKCtxt();
  public:
-  CHKContext(uInt i);
+  CHKCtxt(uInt i);
+  virtual int cmdProc(CWrkTcl* interp,int argc,Tcl_Obj* const argv[]);
   //char onFail() {} // IF to process system fail
   // Set info for wrk-tcl-script
   char* getStatus() {
@@ -146,7 +149,7 @@ class CHKContext: public CContext {
 };
 // ID of House-keeping context & global pointer
 extern uInt HkCId;
-extern CHKContext* pHKContext;
+extern CHKCtxt* pHKCtxt;
 // Flag to stop new context
 extern char stopNewCtxt;
 

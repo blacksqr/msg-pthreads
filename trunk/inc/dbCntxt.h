@@ -25,13 +25,14 @@ class CDbCntx: public CContext {
   virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt);
   virtual void remRefHook() { send0(Evnt_DbReady, iCsCtxt); }
   virtual char onHalt();
+  pTcl_Obj InsData(CTclInterp* ptcl);
  public:
   CDbCntx(uInt i);
   ~CDbCntx() {
     iCsCtxt = 0u;
     DBG("CDbCntx::~CDbCntx cId=%u\n",cId);
   }
-  void InsData(CWThread* pwt);
+  virtual int cmdProc(CWrkTcl* ptcl,int argc,Tcl_Obj* const argv[]);
 };
 
 #endif // DB_CNTXT_H!

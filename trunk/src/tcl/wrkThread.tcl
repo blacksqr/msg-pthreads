@@ -11,7 +11,7 @@ if {[catch {set sOut [Echo_Client localhost 5777]} c_res]} {
 }
 
 # $wThId - value from C++ wrkThread-Id
-puts ">TID<$wThId> wTcl> *** Work thread run ***"
+puts ">TID<$wThId>  *** Work thread run ***"
 set nTclCall 0
 
 puts "icsEvent open database [sqlite3 db /tmp/its_demo.db]"
@@ -57,10 +57,10 @@ proc catchsql {sql {db db}} {
 proc tstCtxt {ev} {
     global wThId sOut valTstLst nTclCall
     while {$ev} {
-	set tbInd "<...>"
-	set NnRec "<...>"
-	setTstData
-	puts ">TID<$wThId> gen_db_data <[lindex $valTstLst 0]>"
+	set tbInd 0
+	set NnRec 0
+	set valTstLst [aCtxt tstData]
+	puts ">TID<$wThId> gen_db_data < $valTstLst >"
 	set insVal "\'[join $valTstLst "\',\'"]\'"
 	#puts ">TID<$wThId> db eval INSERT INTO _RemUser VALUES($insVal);"
 	set ctRes [catch {
@@ -74,29 +74,26 @@ proc tstCtxt {ev} {
 }
 
 while 1 {
-    set ev_DbReady 0x0C
     #set QQ [clock format [clock seconds] -format {%d-%k:%M:%S}]
-    puts ">TID<$wThId> Call ==>getev"
+    # [getev] - set value of $ctxtType
     set Ev  [getev]
     incr nTclCall
-    puts ">TID<$wThId> wTcl>Event-id $Ev"
+    puts ">TID<$wThId> Context_Type-$ctxtType Event-$Ev"
     if { !$Ev } {
 	# Reload work script
-	puts ">TID<$wThId> wTcl>EXIT wrkTclScript [db close]"
+	puts ">TID<$wThId> EXIT wrkTclScript [db close]"
 	break
     }
-    set cTp [ctxtTp]
-    puts ">TID<$wThId> wTcl>Context type $cTp"
-    switch -- $cTp {
+    switch -- $ctxtType {
 	1 {
 	    # HausKeep Context
-	    puts $sOut ">TID<$wThId> HausKeep type $cTp, Res=>[appSt]"
-	    puts       ">TID<$wThId> HausKeep type $cTp, Res=>[appSt]"
+	    puts $sOut ">TID<$wThId> HausKeep type $ctxtType, Res=>[aCtxt apst]"
+	    puts       ">TID<$wThId> HausKeep type $ctxtType, Res=>[aCtxt apst]"
 	} 2 {
 	    # Test Context
 	    after 1
 	    if {$wThId == 3} {
-		puts $sOut ">TID<$wThId> Test Context type $cTp, Ev=> $Ev"
+		puts $sOut ">TID<$wThId> Test Context type $ctxtType, Ev=> $Ev"
 	    }
 	} 3 {
 	    # DB Context
@@ -105,7 +102,7 @@ while 1 {
 	    puts       ">TID<$wThId> $nTclCall ===>SQL"
 	} default {
 	    # Unknown Context - error
-	    puts "Unknown Context - error $cTp"
+	    puts "Unknown Context - error $ctxtType"
 	}
     }
 }

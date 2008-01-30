@@ -31,7 +31,7 @@ void CTstCntx::delTCtxt(CTstCntx* pt) {
 
 // ======================================================
 
-extern uInt RRand();
+extern int RRand();
 
 CTstCntx::CTstCntx(uInt i): CContext(i) {
   ctxtType = C_CTXT_TST;

@@ -15,16 +15,33 @@
 
 #include "tclAdapter.h"
 
-extern "C" {
-  int Sqlite3_Init(Tcl_Interp*);
-  int Md5_Init(Tcl_Interp*);
-#ifdef TCL_THREADS
-  int TclThread_Init(Tcl_Interp*);
-#endif
-} // extern "C"
-
-class CContext;
+class CGetEvnt;
+class CCtxtProc;
 class CWThread;
+
+// ===============================================
+
+class CWrkTcl: public CTclInterp {
+  friend class CGetEvnt;
+  friend class CCtxtProc;
+  //========================
+  friend class CTstData;
+ private:
+  // Disable copy constructor
+  CWrkTcl(const CWrkTcl&);
+  void operator = (const CWrkTcl&);
+ protected:
+  CWThread* pth;
+ public:
+  CWrkTcl() {}
+  ~CWrkTcl() {}
+  CWThread* getTh() { return pth; }
+  // init custom commands
+  char Init(CWThread* p);
+  int cmdProc(int argc,Tcl_Obj* const argv[]);
+};
+
+// ===============================================
 
 class CGetEvnt: public CTclCmd {
  public:
@@ -33,71 +50,15 @@ class CGetEvnt: public CTclCmd {
   virtual int cmdProc(int argc,Tcl_Obj* const argv[]);
 };
 
-// macro for all wrk-Tcl Context base command
-#define wrkGetCtxt() (((CWrkTcl*)interp)->getCtxt())
-
-// Get context type for Tcl-switch statment
-class CGetCtxtTp: public CTclCmd {
+// call current Context->cmdProc
+class CCtxtProc: public CTclCmd {
  public:
-  CGetCtxtTp(CTclInterp* pi): CTclCmd(pi,"ctxtTp") {}
-  ~CGetCtxtTp() {}
-  virtual int cmdProc(int argc,Tcl_Obj* const argv[]);
-};
-
-// HauseKeep context - get application state
-class CAppState: public CTclCmd {
- public:
-  CAppState(CTclInterp* pi): CTclCmd(pi,"appSt") {}
-  ~CAppState() {}
-  virtual int cmdProc(int argc,Tcl_Obj* const argv[]);
-};
-
-class CSendMsg: public CTclCmd {
- public:
-  CSendMsg(CTclInterp* pi): CTclCmd(pi,"sendEv") {}
-  ~CSendMsg() {}
-  virtual int cmdProc(int argc,Tcl_Obj* const argv[]);
-};
-
-class CSetTimer: public CTclCmd {
- public:
-  CSetTimer(CTclInterp* pi): CTclCmd(pi,"sTimer") {}
-  ~CSetTimer() {}
-  virtual int cmdProc(int argc,Tcl_Obj* const argv[]);
-};
-
-// ===============================================
-
-// Gen test data
-class CTstData: public CTclCmd {
- public:
-  CTstData(CTclInterp* pi): CTclCmd(pi,"setTstData") {}
-  ~CTstData() {}
-  virtual int cmdProc(int argc,Tcl_Obj* const argv[]);
-};
-
-// ===============================================
-
-class CWrkTcl: public CTclInterp {
-  friend class CGetEvnt;
-  friend class CGetCtxtTp;
-  friend class CAppState;
-  friend class CSendMsg;
-  friend class CSetTimer;
-  //========================
-  friend class CTstData;
- private:
-  // Disable copy constructor
-  CWrkTcl(const CWrkTcl&);
- protected:
-  CWThread* pth;
- public:
-  CWrkTcl() {}
-  ~CWrkTcl() {}
-  CContext* getCtxt();
-  CWThread* getTh() { return pth; }
-  // init custom commands
-  char Init(CWThread* p);
+  CCtxtProc(CTclInterp* pi): CTclCmd(pi,"aCtxt") {}
+  ~CCtxtProc() {}
+  virtual int cmdProc(int argc,Tcl_Obj* const argv[]) {
+    DBG("CCtxtProc::cmdProc argc - %d\n",argc);
+    return ((CWrkTcl*)interp)->cmdProc(argc,argv);
+  }
 };
 
 #endif // WORK_TCL_H

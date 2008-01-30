@@ -84,14 +84,20 @@ puts ">aTcl: start work thread [wThrd start]"
 puts ">aTcl: start work thread [wThrd start]"
 puts ">aTcl: start work thread [wThrd start]"
 puts ">aTcl: start work thread [wThrd start]"
+puts ">aTcl: start work thread [wThrd start]"
+puts ">aTcl: start work thread [wThrd start]"
+puts ">aTcl: start work thread [wThrd start]"
+puts ">aTcl: start work thread [wThrd start]"
+puts ">aTcl: start work thread [wThrd start]"
+puts ">aTcl: start work thread [wThrd start]"
 # Work threads ready & waiting events
 
 # set first hausekeeping timeout in 5.55 sec
 puts ">aTcl: HsKeep tOut        [apps tout 555 2 0]"
 # make NN1 and NN2 msg/s TT1 and TT2 in 0.1 s
 puts ">aTcl: start xtst  thread [sThrd start xtst 999  999  10 10]"
-puts ">aTcl: start xtst  thread [sThrd start xtst 555  9999 17 3]"
-puts ">aTcl: start xtst  thread [sThrd start xtst 9999 555  3  17]"
+puts ">aTcl: start xtst  thread [sThrd start xtst 555  3999 18 2]"
+puts ">aTcl: start xtst  thread [sThrd start xtst 3999 555  2  18]"
 # Alarm generation thread NN1 NN@ msg/s and tmOut alarm
 #puts ">aTcl: start aTst  thread [sThrd start atst 9 5]"
 # UDP Thread - to read SIP msg

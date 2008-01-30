@@ -112,7 +112,7 @@ void CContext::destruct() {
 }
 
 CContext* CContext::findCtxt(uInt id) {
-  return (HkCId == id) ? pHKContext : hashCntxt.get(id);
+  return (HkCId == id) ? pHKCtxt : hashCntxt.get(id);
 }
 
 void CContext::Halt() {
@@ -122,59 +122,88 @@ void CContext::Halt() {
   destruct();
 }
 
+int CContext::cmdProc(CWrkTcl* interp, int argc, Tcl_Obj* const argv[]) {
+  const char* sCmd = interp->tGetVal(argv[1]);
+  DBG("CContext::cmdProc sCmd - %s\n",sCmd);
+  switch(*(sCmd++)) {
+    case 's':  // sndev - send event from context
+      if(!strcmp("ndev",sCmd) && (argc == 5)) {
+	TGVal(short,ev,argv[2]);
+	TGVal(int,id,argv[3]);
+	TGVal(int,pp,argv[4]);
+	if(id >= 0) {
+	  send(ev, id ? id : getId(), (pVoid)pp);
+	} else
+	  send0(ev, -id, (pVoid)pp);
+      }
+      break;
+    case 't':  // tmout - set timeout from context
+      if(!strcmp("mout",sCmd) && (argc == 5)) {
+	TGVal(int,tm,argv[2]);
+	TGVal(short,type,argv[3]);
+	TGVal(int,f,argv[4]);
+	setTimer((uLong)tm,(uChar)type,(uShort)f);
+      }
+      break;
+    default :
+      LOG(L_ERR,"CContext::cmdProc Error <%s>\n",sCmd);
+  }
+  return TCL_OK;
+}
+
 // ===============================================
 
-CHKContext::CHKContext(uInt i): CContext(i) {
+CHKCtxt::CHKCtxt(uInt i): CContext(i) {
   HkCId = i;
   ctxtType = C_CTXT_HK;
-  LOG(L_NOTICE,"CHKContext::CHKContext cId=%u Seq %u<>%u\n",cId,seq0,seq1);
+  LOG(L_NOTICE,"CHKCtxt::CHKCtxt cId=%u Seq %u<>%u\n",cId,seq0,seq1);
   unlock();
 }
 
-CHKContext::~CHKContext() {
+CHKCtxt::~CHKCtxt() {
   HkCId = 0u;
-  pHKContext = NULL;
-  LOG(L_NOTICE,"CHKContext::~CHKContext destruction of HauseKeep context!!!\n");
+  pHKCtxt = NULL;
+  LOG(L_NOTICE,"CHKCtxt::~CHKCtxt destruction of HauseKeep context!!!\n");
 }
 
-uShort CHKContext::Run(CEvent* pe,CWThread* pwt) {
+uShort CHKCtxt::Run(CEvent* pe,CWThread* pwt) {
   uChar evId = pe->getEv();
   // save state of sending sign.thread
-  DBG("CHKContext::Run EventId=%u SThrd=%d\n",evId,pe->sigThId());
+  DBG("CHKCtxt::Run EventId=%u SThrd=%d\n",evId,pe->sigThId());
   if(evId == Evnt_Que12Full) {
     // on Evnt_Que12Full message - LOG output ...
-    LOG(L_ERR,"CHKContext::Run cId=%u %u Evnt_Que12Full\n",cId,pwt->getWTId());
+    LOG(L_ERR,"CHKCtxt::Run cId=%u %u Evnt_Que12Full\n",cId,pwt->getWTId());
     ;
     return 0x0;
   }
   if(evId == Evnt_EndSigTh) {
     // Signal thread exited
-    LOG(L_ERR,"CHKContext::Run %u Signaling Thread %d fail\n",pwt->getWTId(),pe->sigThId());
+    LOG(L_ERR,"CHKCtxt::Run %u Signaling Thread %d fail\n",pwt->getWTId(),pe->sigThId());
     ;
     return 0x0;
   }
   if(evId == Evnt_SThAlive) {
     // Signal thread no event's - timeout
-    DBG("CHKContext::Run Sign.Thread %d Evnt_SThAlive\n",pe->sigThId());
+    DBG("CHKCtxt::Run Sign.Thread %d Evnt_SThAlive\n",pe->sigThId());
     ;
     return 0x0;
   }
   if(evId == Evnt_HsKeepCtxt) {
     // HK-Event from event proc. context
     if(pe->sigThId() == hk_wTclFail)
-      LOG(L_ERR,"CHKContext::Run %u wrkTcl-script fail ctxtId=%u\n",pwt->getWTId(),pe->dtId());
+      LOG(L_ERR,"CHKCtxt::Run %u wrkTcl-script fail ctxtId=%u\n",pwt->getWTId(),pe->dtId());
     ;
     return 0x0;
   }
   // if... {...}
-  LOG(L_ERR,"CHKContext::Run %u Unhandled Event=%u\n",pwt->getWTId(),evId);
+  LOG(L_ERR,"CHKCtxt::Run %u Unhandled Event=%u\n",pwt->getWTId(),evId);
   return 0x01; // Error proc in Tcl
 }
 
 extern char GlobEvThreadStoped;
 
-uShort CHKContext::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
-  DBG("CHKContext::onTimer EventId=0x%X\n",pe->getEv());
+uShort CHKCtxt::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
+  DBG("CHKCtxt::onTimer EventId=0x%X\n",pe->getEv());
   switch(pe->getEv()) {
     case TOut_sigThAlrm: {
       // on TOut_sigThAlrm - signal-thread Alarm
@@ -182,16 +211,16 @@ uShort CHKContext::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
       if(!GlobEvThreadStoped && sThId--) {
 	uInt dlt = g_evThrdArr[sThId]->getTm();
 	uInt tn  = tNn - dlt;
-	DBG("CHKContext::onTimer Signal thread %s[%u] Alarm Now=%u  %u  %u\n",
+	DBG("CHKCtxt::onTimer Signal thread %s[%u] Alarm Now=%u  %u  %u\n",
 	    g_evThrdArr[sThId]->thName(),sThId,(uInt)tNn,(uInt)dlt,
 	    (uInt)g_evThrdArr[sThId]->getKATime());
 	if(tn > 2u * g_evThrdArr[sThId]->getKATime()) {
 	  // some actions ... HookFunction !!!
-	  LOG(L_ERR,"CHKContext::onTimer Error Signal thread %s[%u] no responce %u/%u\n",
+	  LOG(L_ERR,"CHKCtxt::onTimer Error Signal thread %s[%u] no responce %u/%u\n",
 	      g_evThrdArr[sThId]->thName(),sThId+1,tn,(uInt)dlt);
 	}
       } else
-	LOG(L_ERR,"CHKContext::onTimer Error TOut_sigThAlrm sThId==0\n");
+	LOG(L_ERR,"CHKCtxt::onTimer Error TOut_sigThAlrm sThId==0\n");
       break;
     }
     case TOut_HsKeep: {
@@ -204,7 +233,7 @@ uShort CHKContext::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
 	  // Thread process event
 	  uInt tt = tNn - pWrkThArr[k]->gMTime();
 	  if(tt > 11) {
-	    LOG(L_ERR,"CHKContext::onHsKeep WThread %u State %u proc.msg %u BLOCKED %u s\n",
+	    LOG(L_ERR,"CHKCtxt::onHsKeep WThread %u State %u proc.msg %u BLOCKED %u s\n",
 		k+1,st,pWrkThArr[k]->gMId(),tt);
 	    // some action ...
 	  }
@@ -213,16 +242,27 @@ uShort CHKContext::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
 	  // print statistic info
 	  const uInt* st = pWrkThArr[k]->getTimes();
 	  // Message processing timing
-	  DBG("CHKContext::onHsKeep<# %u NMsg=%u\n\t%u \t%u \t%u \t%u\n",
+	  DBG("CHKCtxt::onHsKeep<# %u NMsg=%u\n\t%u \t%u \t%u \t%u\n",
 	      k,pWrkThArr[k]->getNMsg(),st[0],st[1],st[2],st[3]);
 	}
-	DBG("CHKContext::onHsKeep># Now=%u wtId=%u cId=%u msgId=%u thState=%u nWait=%u\n",
+	DBG("CHKCtxt::onHsKeep># Now=%u wtId=%u cId=%u msgId=%u thState=%u nWait=%u\n",
 	    (uInt)tNn,k,pWrkThArr[k]->gCtxtId(),pWrkThArr[k]->gMId(),st,pWrkThArr[k]->gNWiat());
       }
       break;
     }
     default:
-      LOG(L_ERR,"CHKContext::onTimer Error unknow timer Ev=%u\n",pe->getEv());
+      LOG(L_ERR,"CHKCtxt::onTimer Error unknow timer Ev=%u\n",pe->getEv());
   }
   return 0u;
 }
+
+int CHKCtxt::cmdProc(CWrkTcl* interp, int argc, Tcl_Obj* const argv[]) {
+  const char* sCmd = interp->tGetVal(argv[1]);
+  DBG("CHKCtxt::cmdProc sCmd - %s\n",sCmd);
+  if(!strcmp(sCmd, "apStat")) {
+    Tcl_SetObjResult(interp->getInterp(),tSetObj(getStatus()));
+    return TCL_OK;
+  }
+  return CContext::cmdProc(interp,argc,argv);
+}
+

@@ -23,7 +23,6 @@ CTmQueue tmQueue;
 CTmThrd* pTmThrd = NULL;
 // timer pool
 static CMPool CTmObj_mem(sizeof(CTmObj));
-extern CHKContext* pHKContext;
 
 CTmObj* CTmObj::newTm(uChar t,uInt i,uShort f) {
   return new (CTmObj_mem.pAlloc()) CTmObj(t,i,f);

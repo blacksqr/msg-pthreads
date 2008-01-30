@@ -47,14 +47,14 @@ int CSigThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	    }
 	    break;
 	  default :
-	    LOG(L_ERR,"<CWrkThrd::cmdProc Error <%s>\n",sCmd);
+	    LOG(L_ERR,"CWrkThrd::cmdProc Error <%s>\n",sCmd);
 	    pParam(argc, argv);
 	}
 	tSetResult(tSetObj(res));
       }
       break;
     default :
-      LOG(L_ERR,"<CSigThrd::cmdProc Error <%s>\n",sCmd);
+      LOG(L_ERR,"CSigThrd::cmdProc Error <%s>\n",sCmd);
       pParam(argc, argv);
   }
   return TCL_OK;
@@ -122,7 +122,7 @@ int CWrkThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
       }
       break;
     default :
-      LOG(L_ERR,"<CWrkThrd::cmdProc Error <%s>\n",sCmd);
+      LOG(L_ERR,"CWrkThrd::cmdProc Error <%s>\n",sCmd);
       pParam(argc, argv);
   }
   return TCL_OK;
@@ -218,7 +218,7 @@ int CComApp::cmdProc(int argc,Tcl_Obj* const argv[]) {
       }
       break;
     default :
-      LOG(L_ERR,"<CSigThrd::cmdProc Error <%s>\n",sCmd);
+      LOG(L_ERR,"CSigThrd::cmdProc Error <%s>\n",sCmd);
       pParam(argc, argv);
   }
   return TCL_OK;

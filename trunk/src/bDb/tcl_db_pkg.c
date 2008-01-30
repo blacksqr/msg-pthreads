@@ -1,8 +1,6 @@
 /*-
  * See the file LICENSE for redistribution information.
- *
  * Copyright (c) 1999,2007 Oracle.  All rights reserved.
- *
  * $Id: tcl_db_pkg.c,v 12.51 2007/07/09 17:38:45 bostic Exp $
  */
 

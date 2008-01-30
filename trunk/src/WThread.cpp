@@ -20,7 +20,7 @@
 #include <cashCtxt.h>
 
 char  CWThread::eFlag = '\0';
-extern CHKContext* pHKContext;
+extern CHKCtxt* pHKCtxt;
 char  CWThread::g_WStatStart = '\0';  // Statistic OFF / ON
 uChar CWThread::nRun         = '\0';  // global number of running threads
 uChar CWThread::nReload      = '\0';  // global number of threads, reloaded Tcl-script
@@ -47,6 +47,11 @@ CWThread::CWThread(uChar id):
 CWThread::~CWThread() {
   pWrkThArr[wtId-1] = NULL;
   LOG(L_WARN,"CWThread::~CWThread %u %u> TERMINATED Now=%u\n",wtId,nRun,(uInt)tNow());
+}
+
+int CWThread::cmdProc(CWrkTcl* ptcl,int argc,Tcl_Obj* const argv[]) {
+  DBG("CWThread::cmdProc argc - %d\n",argc);
+  return pCont ? pCont->cmdProc(ptcl,argc,argv) : TCL_OK;
 }
 
 uInt CWThread::tmDelta() {
@@ -167,7 +172,7 @@ uShort CWThread::getEvent() {
 	}
 	pCont = hashCntxt.get(pe->getCId());
       } else
-	pCont = pHKContext; // HausKeep
+	pCont = pHKCtxt; // HausKeep
       if(pCont && pCont->rfCount && (evType != Evnt_PreDelCtxt)) {
 	pCont->addRef();     // to prevent destruction
 	seq = pCont->seq0++; // save msg-get seq. & inc. it
@@ -217,10 +222,10 @@ uShort CWThread::getEvent() {
       uShort xRet = isTimer ? pCont->onTimer(msgTm,pe,this) : Run(pe);
       DBG("CWThread::getEvent===> %u %s\n",pCont->cId,(xRet ? "Go_in_Tcl" : "Get_new_Ev"));
       if(xRet)
-	return xRet;    // return in TCL
+	return evType; // return in TCL
     } else
       pCont = NULL;
-    continue;         // Wait new event
+    continue;          // Wait new event
 gNewCtx:
     if(!stopNewCtxt) {
       // Factory to produce new context & add it to hash
@@ -230,7 +235,7 @@ gNewCtx:
 	if(WStstRun) { Tt2 = tmDelta(); ++nMsgTot; }
 	uShort xRet = Run(pe);
 	if(xRet)
-	  return xRet;    // return in TCL
+	  return evType; // return in TCL
       } else {
 	DBG("CWThread::getEvent> NULL=genNewCtx(Type=0x%X ThId=%u)\n",pe->getEv(),pe->sigThId());
 	// Some Error action's ..............

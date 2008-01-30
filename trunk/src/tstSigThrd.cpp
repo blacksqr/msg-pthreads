@@ -15,7 +15,7 @@
 #include <tstSigThrd.h>
 #include <ext/hash_map>
 
-extern uInt RRand();
+extern int RRand();
 
 //=================================================
 

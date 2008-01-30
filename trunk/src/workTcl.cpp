@@ -16,92 +16,42 @@
 #include <workTcl.h>
 #include <dbCntxt.h>
 
+extern "C" {
+  int Md5_Init(Tcl_Interp*);
+  int Sqlite3_Init(Tcl_Interp* interp);
+  int Db_tcl_Init(Tcl_Interp* interp);
+#ifdef TCL_THREADS
+  int TclThread_Init(Tcl_Interp*);
+#endif
+} // extern "C"
+
+// ===================================================
+
 int CGetEvnt::cmdProc(int argc,Tcl_Obj* const argv[]) {
-  CWrkTcl* pTcl = (CWrkTcl*)interp;
-  int res = pTcl->pth->getEvent();
-  //DBG(">CGetEvnt::cmdProc> tclCmd-getev event res=%d\n",res);
-  tSetResult(tSetObj(res));
+  CWThread* pwth = ((CWrkTcl*)interp)->pth;
+  tSetResult(tSetObj(pwth->getEvent()));
+  pContext pc = pwth->getCtxt();
+  (void)interp->setVar("ctxtType", tSetObj(pc ? pc->getCtxtType() : '\0'));
+  DBG("CGetEvnt::cmdProc getev ctxtType-%u\n",pc ? pc->getCtxtType() : '\0');
   return TCL_OK;
 }
 
 // ===================================================
 
-int CGetCtxtTp::cmdProc(int argc,Tcl_Obj* const argv[]) {
-  CContext* pc = wrkGetCtxt();
-  short res = pc->getCtxtType();
-  //DBG(">CGetCtxtTp::cmdProc> CntxtType=%d\n",res);
-  tSetResult(tSetObj(res));
-  return TCL_OK;
+int CWrkTcl::cmdProc(int argc,Tcl_Obj* const argv[]) {
+  DBG("CWrkTcl::cmdProc argc - %d\n",argc);
+  return pth->cmdProc(this,argc,argv);
 }
-
-// ===================================================
-
-int CAppState::cmdProc(int argc,Tcl_Obj* const argv[]) {
-  CHKContext* pc = (CHKContext*)wrkGetCtxt();
-  tSetResult(tSetObj(pc->getStatus()));
-  return TCL_OK;
-}
-
-// ===================================================
-
-int CSendMsg::cmdProc(int argc,Tcl_Obj* const argv[]) {
-  pParam(argc, argv);
-  if(argc == 4) {
-    TGVal(short,ev,argv[1]);
-    TGVal(int,id,argv[2]);
-    TGVal(int,pp,argv[3]);
-    CContext* pc = wrkGetCtxt();
-    if(id >= 0) {
-      pc->send(ev, id ? id : pc->getId(), (pVoid)pp);
-    } else
-      pc->send0(ev, -id, (pVoid)pp);
-  }
-  return TCL_OK;
-}
-
-// ===================================================
-
-extern uInt HkCId;
-int CSetTimer::cmdProc(int argc,Tcl_Obj* const argv[]) {
-  pParam(argc, argv);
-  if(argc == 5) {
-    TGVal(int,cid,argv[1]);
-    TGVal(int,tm,argv[2]);
-    TGVal(short,type,argv[3]);
-    TGVal(int,f,argv[4]);
-    if(!cid) {
-      CContext* pc = wrkGetCtxt();
-      pc->setTimer((uLong)tm,(uChar)type,(uShort)f);
-    } else // hauseKeep timer
-      tmQueue.set(tm,type,HkCId,f);
-  }
-  return TCL_OK;
-}
-
-// ===================================================
-
-int CTstData::cmdProc(int argc,Tcl_Obj* const argv[]) {
-  CDbCntx* pc = (CDbCntx*)wrkGetCtxt();
-  pc->InsData(((CWrkTcl*)interp)->getTh());
-  return TCL_OK;
-}
-
-// ===================================================
-
-CContext* CWrkTcl::getCtxt() { return pth->pCont; }
 
 char CWrkTcl::Init(CWThread* p) {
   pth = p;
   // Add Sqlite commands
   (void)Sqlite3_Init(getInterp());
+  // Add Berkly-db commands
+  (void)Db_tcl_Init(getInterp());
   // Add new TCL commands
   new CGetEvnt(this);
-  new CGetCtxtTp(this);
-  new CAppState(this);
-  new CSendMsg(this);
-  new CSetTimer(this);
-  // ===============================================
-  new CTstData(this);
+  new CCtxtProc(this);
   // ===============================================
   // Set wrkThreadId in interpreter - wThId
   (void)setVar("wThId",tSetObj((short)(p->getWTId())));

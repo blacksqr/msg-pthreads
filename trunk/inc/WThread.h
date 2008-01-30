@@ -45,7 +45,7 @@ class CWThread: public CThreadObj {
   uInt         nMsgTot;
   STmVal       tmVal;  // For statistic
   CEvent*      pe;
-  CContext*    pCont;
+  pContext     pCont;
   CWrkTcl      Tcl;
   //CUdpClntSock pSock;
   uShort nWait;     // Num of wait for (seq == pCont->seq1)
@@ -57,6 +57,8 @@ class CWThread: public CThreadObj {
  public:
   CWThread(uChar id);
   virtual ~CWThread();
+  int cmdProc(CWrkTcl* ptcl,int argc,Tcl_Obj* const argv[]);
+  pContext getCtxt() { return pCont; }
   static void wStop()  { eFlag = 'x'; }
   static void wStart() { eFlag = '\0'; }
   virtual void* go();

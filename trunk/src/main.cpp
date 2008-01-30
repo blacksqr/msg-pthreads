@@ -27,7 +27,7 @@ extern "C" {
 } // extern "C"
 
 uChar GlAppsFlag = '\0';
-CHKContext* pHKContext = NULL;
+CHKCtxt* pHKCtxt = NULL;
 
 CAppTimer appTimer;
 //static short weekMinute;
@@ -135,7 +135,7 @@ int main(int argc,char* argv[]) {
   {
     // start SysLog interface
     CSysLog _AppSysLog(outFl);
-    pHKContext = new CHKContext(CContext::reservId());
+    pHKCtxt = new CHKCtxt(CContext::reservId());
     // Start timer thread
     pTmThrd = new CTmThrd;
     // .....................
