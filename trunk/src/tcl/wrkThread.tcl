@@ -60,7 +60,6 @@ proc tstCtxt {ev} {
 	set tbInd 0
 	set NnRec 0
 	set valTstLst [aCtxt tstData]
-	puts ">TID<$wThId> gen_db_data < $valTstLst >"
 	set insVal "\'[join $valTstLst "\',\'"]\'"
 	#puts ">TID<$wThId> db eval INSERT INTO _RemUser VALUES($insVal);"
 	set ctRes [catch {
@@ -68,7 +67,6 @@ proc tstCtxt {ev} {
 	    set tbInd [db last_insert_rowid]
 	} cRes]
 	puts $sOut ">TID<$wThId> db INS Result >> $ctRes> $cRes"
-	puts       ">TID<$wThId> db INS Result >> $ctRes> $cRes"
 	incr ev -1
     }
 }
@@ -87,13 +85,12 @@ while 1 {
     switch -- $ctxtType {
 	1 {
 	    # HausKeep Context
-	    puts $sOut ">TID<$wThId> HausKeep type $ctxtType, Res=>[aCtxt apst]"
-	    puts       ">TID<$wThId> HausKeep type $ctxtType, Res=>[aCtxt apst]"
+	    puts $sOut ">TID<$wThId> HausKeep CtxtType-$ctxtType Ev-$Ev"
 	} 2 {
 	    # Test Context
 	    after 1
 	    if {$wThId == 3} {
-		puts $sOut ">TID<$wThId> Test Context type $ctxtType, Ev=> $Ev"
+		puts $sOut ">TID<$wThId> Test Context type $ctxtType Ev $Ev"
 	    }
 	} 3 {
 	    # DB Context

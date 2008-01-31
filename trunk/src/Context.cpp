@@ -224,7 +224,8 @@ uShort CHKCtxt::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
       break;
     }
     case TOut_HsKeep: {
-      setTimer(222, TOut_HsKeep);  // set new hausekeep event
+      // set new hausekeep timeOut
+      setTimer(133, TOut_HsKeep);
       // on hausekeep timer - check state of all work threads
       for(uChar k=0x0; k<CWThread::nRThrd(); ++k) {
 	if(!pWrkThArr[k]) continue;
@@ -242,7 +243,7 @@ uShort CHKCtxt::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
 	    k+1,pWrkThArr[k]->gMTime(),pWrkThArr[k]->gCtxtId(),
 	    pWrkThArr[k]->gMId(),st,pWrkThArr[k]->gNWiat());
       }
-      break;
+      return 1u;
     }
     default:
       LOG(L_ERR,"CHKCtxt::onTimer Error unknow timer Ev=%u\n",pe->getEv());

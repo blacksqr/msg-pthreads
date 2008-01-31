@@ -45,7 +45,6 @@ proc Echo {sock} {
 }
 # Block "exit" command in admin script
 rename exit {}
-
 # Setup demo database & clean all log files
 catch {
     file delete /tmp/its_demo.db
@@ -74,6 +73,7 @@ db eval {
 }
 puts ">>>> RemUser"
 db close
+
 #######################################
 
 puts "\n\n>aTcl: *** START Admin Script ***\n"
@@ -93,7 +93,7 @@ puts ">aTcl: start work thread [wThrd start]"
 # Work threads ready & waiting events
 
 # make NN1 and NN2 msg/s TT1 and TT2 in 0.1 s
-puts ">aTcl: start xtst  thread [sThrd start xtst 999  999  10 10]"
+puts ">aTcl: start xtst  thread [sThrd start xtst 777  777  10 10]"
 puts ">aTcl: start xtst  thread [sThrd start xtst 555  3999 18 2]"
 puts ">aTcl: start xtst  thread [sThrd start xtst 3999 555  2  18]"
 # Alarm generation thread NN1 NN@ msg/s and tmOut alarm
@@ -111,6 +111,7 @@ puts ">aTcl: Start Echo_Server [Echo_Server 4567]"
 
 puts ">aTcl: Stop Ctxt factory  [apps endNC 3]"
 puts ">aTcl: Stop sign.threads  [apps goff]"
+after 777
 puts ">aTcl: NOW Remove all context"
 puts ">aTcl: Remove all context [apps halt]"
 after 3333

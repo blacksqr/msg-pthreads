@@ -145,8 +145,8 @@ int main(int argc,char* argv[]) {
       // Admin interpreter
       CAdmTcl tcl;
       strcpy((char*)appsHome,"admin.tcl");
-      // Set first HkTmOut in 3.33 s
-      tmQueue.set(333,TOut_HsKeep,HkCId,0);
+      // Set first HkTmOut in 7.77 s
+      tmQueue.set(777,TOut_HsKeep,HkCId,0);
       DBG("*** Start admin-TCL script <%s> ***\n",appsHomeArr);
       rrr = tcl.Init() ? -2 : tcl.EvalFile(appsHomeArr);
     }

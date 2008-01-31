@@ -43,6 +43,8 @@ int CWrkTcl::cmdProc(int argc,Tcl_Obj* const argv[]) {
   return pth->cmdProc(this,argc,argv);
 }
 
+// ===================================================
+
 char CWrkTcl::Init(CWThread* p) {
   pth = p;
   // Add Sqlite commands
@@ -52,7 +54,6 @@ char CWrkTcl::Init(CWThread* p) {
   // Add new TCL commands
   new CGetEvnt(this);
   new CCtxtProc(this);
-  // ===============================================
   // Set wrkThreadId in interpreter - wThId
   (void)setVar("wThId",tSetObj((short)(p->getWTId())));
   return 0x0;
