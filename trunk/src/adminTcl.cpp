@@ -155,12 +155,13 @@ int CComApp::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	tSetResult(tSetObj(res));
       }
       break;
-    case 't': // tout tOur Type shortIi - set new HauseKeep timeout
-      if(!strcmp("out",sCmd) && (argc == 5)) {
+    case 't': // tout tOur Type shortIi - set new timeout
+      if(!strcmp("out",sCmd) && (argc == 6)) {
 	TGVal(int,tm,argv[2]);
 	TGVal(short,tm_type,argv[3]);
-	TGVal(short,sIi,argv[4]);
-	tmQueue.set(tm,tm_type,HkCId,sIi);
+	TGVal(int,CId,argv[4]);
+	TGVal(short,sIi,argv[5]);
+	tmQueue.set(tm,tm_type,CId,sIi);
       }
       break;
     case 'b': // break all

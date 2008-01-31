@@ -203,7 +203,7 @@ uShort CHKCtxt::Run(CEvent* pe,CWThread* pwt) {
 extern char GlobEvThreadStoped;
 
 uShort CHKCtxt::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
-  DBG("CHKCtxt::onTimer EventId=0x%X\n",pe->getEv());
+  DBG("CHKCtxt::onTimer EventId=0x%X Now=%u\n",pe->getEv(),(uInt)tNn);
   switch(pe->getEv()) {
     case TOut_sigThAlrm: {
       // on TOut_sigThAlrm - signal-thread Alarm
@@ -238,15 +238,9 @@ uShort CHKCtxt::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
 	    // some action ...
 	  }
 	}
-	if(pWrkThArr[k]->getNMsg() > 9) {
-	  // print statistic info
-	  const uInt* st = pWrkThArr[k]->getTimes();
-	  // Message processing timing
-	  DBG("CHKCtxt::onHsKeep<# %u NMsg=%u\n\t%u \t%u \t%u \t%u\n",
-	      k,pWrkThArr[k]->getNMsg(),st[0],st[1],st[2],st[3]);
-	}
-	DBG("CHKCtxt::onHsKeep># Now=%u wtId=%u cId=%u msgId=%u thState=%u nWait=%u\n",
-	    (uInt)tNn,k,pWrkThArr[k]->gCtxtId(),pWrkThArr[k]->gMId(),st,pWrkThArr[k]->gNWiat());
+	DBG("CHKCtxt::onHsKeep \twtId=%u \tTt=%u \tcId=%u \tmsgId=%u \tthState=%u \tnWait=%u\n",
+	    k+1,pWrkThArr[k]->gMTime(),pWrkThArr[k]->gCtxtId(),
+	    pWrkThArr[k]->gMId(),st,pWrkThArr[k]->gNWiat());
       }
       break;
     }

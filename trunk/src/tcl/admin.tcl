@@ -92,8 +92,6 @@ puts ">aTcl: start work thread [wThrd start]"
 puts ">aTcl: start work thread [wThrd start]"
 # Work threads ready & waiting events
 
-# set first hausekeeping timeout in 5.55 sec
-puts ">aTcl: HsKeep tOut        [apps tout 555 2 0]"
 # make NN1 and NN2 msg/s TT1 and TT2 in 0.1 s
 puts ">aTcl: start xtst  thread [sThrd start xtst 999  999  10 10]"
 puts ">aTcl: start xtst  thread [sThrd start xtst 555  3999 18 2]"
