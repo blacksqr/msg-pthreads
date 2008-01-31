@@ -238,7 +238,7 @@ uShort CHKCtxt::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
 	    // some action ...
 	  }
 	}
-	DBG("CHKCtxt::onHsKeep \twtId=%u \tTt=%u \tcId=%u \tmsgId=%u \tthState=%u \tnWait=%u\n",
+	DBG("CHKCtxt::onHsKeep wtId=%u \tTt=%u \tcId=%u \tmsgId=%u \tthState=%u \tnWait=%u\n",
 	    k+1,pWrkThArr[k]->gMTime(),pWrkThArr[k]->gCtxtId(),
 	    pWrkThArr[k]->gMId(),st,pWrkThArr[k]->gNWiat());
       }
