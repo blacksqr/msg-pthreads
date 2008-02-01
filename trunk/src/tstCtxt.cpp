@@ -11,7 +11,7 @@
  * Contributor(s): Alex Goldenstein.<goldale.de@googlemail.com>
  */
 #include <dprint.h>
-#include <tstCntxt.h>
+#include <tstCtxt.h>
 #include <tstSigThrd.h>
 #include <workTcl.h>
 #include <WThread.h>

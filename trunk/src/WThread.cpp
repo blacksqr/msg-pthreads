@@ -15,7 +15,7 @@
 #include <WThread.h>
 #include <EvThread.h>
 
-#include <tstCntxt.h>
+#include <tstCtxt.h>
 #include <dbCntxt.h>
 #include <cashCtxt.h>
 
