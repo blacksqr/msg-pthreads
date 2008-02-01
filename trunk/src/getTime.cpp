@@ -21,6 +21,11 @@ CAppTimer::CAppTimer() {
   //(void)getWkMinute();
 }
 
+void CAppTimer::printBegin() {
+  LOG(L_ALERT, "\n***  Start Apps-Timer=0x%X/0x%X  ***\n",
+      (uInt)(T.tv_sec),(uInt)(T.tv_usec));
+}
+
 // time is in 1/100 sec from Apps startup
 unsigned long CAppTimer::now(int s, char ms /* in 1/100 sec*/) {
   struct timeval x;

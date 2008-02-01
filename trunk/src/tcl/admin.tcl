@@ -103,7 +103,7 @@ puts ">aTcl: start xtst  thread [sThrd start xtst 3999 555  2  18]"
 
 # Start all
 puts "\n>aTcl: START ALL[apps start]\n\n"
-puts ">aTcl: Num of work threads running [wThrd num]"
+puts ">aTcl: Num of work threads [wThrd num]"
 ####################################################
 # Start ADMIN loop on localhost:4567
 puts ">aTcl: Start Echo_Server [Echo_Server 4567]"

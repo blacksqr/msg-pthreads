@@ -60,7 +60,7 @@ int CSigThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
   return TCL_OK;
 }
 
-// TCL-if to work threads
+// TCL i-face to work threads
 int CWrkThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
   int ret = 0;
   CThreadObj* p= NULL;
@@ -130,7 +130,7 @@ int CWrkThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 
 extern char GlobEvThreadStoped;
 
-// new TCL commant for coomon Apps taks - <apps>
+// new TCL commant for common Apps task - <apps>
 extern uInt HkCId;
 int CComApp::cmdProc(int argc,Tcl_Obj* const argv[]) {
   pParam(argc, argv);

@@ -17,9 +17,13 @@
 class CAppTimer {
  private:
   struct timeval T;
+  // disable copy constructor.
+  CAppTimer(const CAppTimer&);
+  void operator = (const CAppTimer&);
  public:
   CAppTimer();
   ~CAppTimer() {}
+  void printBegin();
   unsigned long now(int s=0, char ms='\0');
   void tmOut(unsigned long ms, struct timeval* pT, char flag='\0');
 };

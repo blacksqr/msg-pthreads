@@ -141,6 +141,8 @@ int main(int argc,char* argv[]) {
     // .....................
     // to clean start-up => all wait until unlock
     GlEvFifo.getCond().lock();
+    // Print timer start point
+    appTimer.printBegin();
     {
       // Admin interpreter
       CAdmTcl tcl;

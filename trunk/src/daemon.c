@@ -44,7 +44,7 @@ void ss_chld(int x) {
  * nonzero -> handle SIGCLDs so zombies don't clog */
 void daemon_start(int ignsigcld) {
   register int childpid, fd;
-  DBG(">Daemon> daemon_start pid=%d\n",getppid());
+  DBG("Daemon> daemon_start pid=%d\n",getppid());
   if(getppid() == 1)
     goto out;
 #ifdef SIGTTOU
@@ -57,37 +57,36 @@ void daemon_start(int ignsigcld) {
   signal(SIGTSTP, SIG_IGN);
 #endif
   if((childpid = fork()) < 0) {
-    LOG(L_ERR, ">Daemon> can't fork first child\n");
+    LOG(L_ERR, "Daemon> can't fork first child\n");
   } else if(childpid > 0) {
-    DBG(">Daemon> exit 0-parent\n");
+    DBG("Daemon> exit 0-parent\n");
     exit(0);	/* parent */
   }
 #ifdef	SIGTSTP
   /* BSD */
   if(setpgid(0, getpid()) == -1)
-    LOG(L_ERR, ">Daemon> can't change process group\n");
-  DBG(">Daemon> process group changed\n");
+    LOG(L_ERR, "Daemon> can't change process group\n");
+  DBG("Daemon> process group changed\n");
   if((fd = open("/dev/tty", O_RDWR)) >= 0) {
     ioctl(fd, TIOCNOTTY, (char *)NULL); /* lose controlling tty */
-    DBG(">Daemon> lose controlling tty\n");
+    DBG("Daemon> lose controlling tty\n");
     close(fd);
   }
 #else /* SIGTSTP */
   /* System V */
   if(setpgrp() == -1)
-    LOG(L_ERR, ">Daemon> can't change process group\n");
+    LOG(L_ERR, "Daemon> can't change process group\n");
   signal(SIGHUP, SIG_IGN);	/* immune from pgrp leader death */
   if((childpid = fork()) < 0) {
-    LOG(L_ERR, ">Daemon> can't fork second child\n");
+    LOG(L_ERR, "Daemon> can't fork second child\n");
   } else if(childpid > 0) {
-    DBG(">Daemon> exit 1-parent\n");
+    DBG("Daemon> exit 1-parent\n");
     exit(0);	/* first child */
   }
 #endif /* SIGTSTP */
 out:
-  for (fd=0; fd<NOFILE; ++fd) {
+  for (fd=0; fd<NOFILE; ++fd)
     close(fd);
-  }
   errno = 0;  /* probably got set to EBADF from a close */
   chdir("/tmp");
   umask(0);
@@ -96,6 +95,6 @@ out:
     signal(SIGCLD, ss_chld);  /* BSD */
 #else
     signal(SIGCLD, SIG_IGN);  /* System V */
-#endif
+#endif // SIGTSTP
   }
 }
