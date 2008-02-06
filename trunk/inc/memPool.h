@@ -38,6 +38,7 @@ class CMPool {
   void* pAlloc();
   void  pFree(void* b);
 };
+
 // Placement operator new
 extern void* operator new(size_t, void* bf) throw();
 // Placement operator delete

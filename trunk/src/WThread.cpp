@@ -16,7 +16,7 @@
 #include <EvThread.h>
 
 #include <tstCtxt.h>
-#include <dbCntxt.h>
+#include <dbCtxt.h>
 #include <cashCtxt.h>
 
 char  CWThread::eFlag = '\0';

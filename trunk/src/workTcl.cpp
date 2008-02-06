@@ -14,7 +14,7 @@
 #include <Timer.h>
 #include <WThread.h>
 #include <workTcl.h>
-#include <dbCntxt.h>
+#include <dbCtxt.h>
 
 extern "C" {
   int Md5_Init(Tcl_Interp*);

@@ -21,7 +21,7 @@ OBJECTSQL = tclsql.o tclAdapter.o dprint.o
 OBJECTS = \
 	stlObj.o memPool.o pMutex.o getTime.o daemon.o Thread.o EvObj.o WThread.o \
 	tclAdapter.o Context.o Timer.o EvThread.o tstSigThrd.o adminTcl.o workTcl.o \
-	tstCtxt.o cashCtxt.o dbCntxt.o dprint.o main.o
+	tstCtxt.o cashCtxt.o dbCtxt.o bDbCtxt.o dprint.o main.o
 
 LIBS =	-L../Tcl/unix -L../Sql/.libs -L../BDb/.libs \
 	-ltcl8.4 -lsqlite3 -ltclsqlite3 -lpthread -ldl -ldb-4.6

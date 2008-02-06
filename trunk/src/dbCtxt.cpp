@@ -11,7 +11,7 @@
  * Contributor(s): Alex Goldenstein.<goldale.de@googlemail.com>
  */
 #include <dprint.h>
-#include <dbCntxt.h>
+#include <dbCtxt.h>
 #include <workTcl.h>
 #include <WThread.h>
 #include <getTime.h>
