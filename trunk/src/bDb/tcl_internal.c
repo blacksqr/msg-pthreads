@@ -45,8 +45,7 @@
  * This function will create a new info structure and fill it in
  * with the name and pointer, id and type.
  */
-DBTCL_INFO *
-_NewInfo(interp, anyp, name, type)
+DBTCL_INFO* _NewInfo(interp, anyp, name, type)
 	Tcl_Interp *interp;
 	void *anyp;
 	char *name;

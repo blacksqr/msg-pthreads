@@ -3,13 +3,13 @@ CC  = gcc
 CXX = g++
 SRC_DIR = .
 
-GDEFS   = -DHAVE_64BIT_TYPES
+GDEFS   = -DHAVE_64BIT_TYPES -DBDB_ENV_FROM_APPS
 ACDEFFS = -DLINUX
 
 INC = -I../inc -I../Tcl/generic -I../Sql -I../BDb
 
-#CFLAGS = -g  -pipe -Wall -pthread $(GDEFS) -mno-align-double -DBIG_FIFO #-DNO_DEBUG -pg
 CFLAGS = -O2 -pipe -Wall -pthread $(GDEFS) -mno-align-double -DBIG_FIFO #-DNO_DEBUG -pg
+#CFLAGS = -g  -pipe -Wall -pthread $(GDEFS) -mno-align-double -DBIG_FIFO #-DNO_DEBUG -pg
 
 # Berkly DB Files
 BDb   = bDb/tcl_compat.o bDb/tcl_db_pkg.o bDb/tcl_lock.o bDb/tcl_rep.o bDb/tcl_util.o \

@@ -97,6 +97,11 @@ int Db_tcl_Init(interp)
  *	  command of the form dbX, where X is an integer
  *	  starting at 0 (db0, db1, ...)
  */
+
+#ifdef BDB_ENV_FROM_APPS
+DB_ENV* glb_pDbEnv = NULL;
+#endif // BDB_ENV_FROM_APPS
+
 static int berkdb_Cmd(notused, interp, objc, objv)
 ClientData notused;		/* Not used. */
 Tcl_Interp *interp;		/* Interpreter */
@@ -218,6 +223,35 @@ Tcl_Obj *CONST objv[];		/* The argument objects */
 		result = bdb_Version(interp, objc, objv);
 		break;
 	case BDB_ENV:
+#ifdef BDB_ENV_FROM_APPS
+	  snprintf(newname, sizeof(newname), "env%d", env_id);
+	  ip = _NewInfo(interp, NULL, newname, I_ENV);
+	  if (ip) {
+	    if(glb_pDbEnv) {
+	      envp = glb_pDbEnv;
+	      ++env_id;
+	      (void)Tcl_CreateObjCommand(
+		interp, newname, (Tcl_ObjCmdProc*)env_Cmd, (ClientData)envp, NULL);
+	      /* Use ip->i_name - newname is overwritten */
+	      res = NewStringObj(newname, strlen(newname));
+	      _SetInfoData(ip, envp);
+	    } else {
+	      result = bdb_EnvOpen(interp, objc, objv, ip, &envp);
+	      if (result == TCL_OK && envp != NULL) {
+		++env_id;
+		(void)Tcl_CreateObjCommand(interp, newname,
+					   (Tcl_ObjCmdProc*)env_Cmd, (ClientData)envp, NULL);
+		/* Use ip->i_name - newname is overwritten */
+		res = NewStringObj(newname, strlen(newname));
+		_SetInfoData(ip, envp);
+	      } else
+		_DeleteInfo(ip);
+	    }
+	  } else {
+	    Tcl_SetResult(interp, "Could not set up info", TCL_STATIC);
+	    result = TCL_ERROR;
+	  }
+#else // BDB_ENV_FROM_APPS
 	  snprintf(newname, sizeof(newname), "env%d", env_id);
 	  ip = _NewInfo(interp, NULL, newname, I_ENV);
 	  if (ip != NULL) {
@@ -235,6 +269,7 @@ Tcl_Obj *CONST objv[];		/* The argument objects */
 	    Tcl_SetResult(interp, "Could not set up info", TCL_STATIC);
 	    result = TCL_ERROR;
 	  }
+#endif // BDB_ENV_FROM_APPS
 	  break;
 	  case BDB_DBREMOVE:
 	    result = bdb_DbRemove(interp, objc, objv);
@@ -522,8 +557,7 @@ DB_ENV **env;			/* Environment pointer */
 	rep_flags = set_flags = cr_flags = 0;
 	home = NULL;
 
-	/*
-	 * XXX
+	/* XXX
 	 * If/when our Tcl interface becomes thread-safe, we should enable
 	 * DB_THREAD here in all cases.  For now, we turn it on later in this
 	 * function, and only when we're in testing and we specify the
@@ -533,8 +567,7 @@ DB_ENV **env;			/* Environment pointer */
 	 * DBTCL_INFO structs are safe to share across threads (they're not
 	 * mutex-protected) before we declare the Tcl interface thread-safe.
 	 * Meanwhile, there's no strong reason to enable DB_THREAD when not
-	 * testing.
-	 */
+	 * testing. */
 	open_flags = 0;
 	logmaxset = logbufset = 0;
 
@@ -543,9 +576,7 @@ DB_ENV **env;			/* Environment pointer */
 		return (TCL_ERROR);
 	}
 
-	/*
-	 * Server code must go before the call to db_env_create.
-	 */
+	/* Server code must go before the call to db_env_create. */
 	server = NULL;
 	server_to = client_to = 0;
 	i = 2;
