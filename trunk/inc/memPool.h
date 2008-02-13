@@ -33,7 +33,13 @@ class CMPool {
   CMPool(const CMPool&);
   void operator = (const CMPool&);
  public:
-  CMPool(size_t sz,unsigned char m=0x2): head(NULL),esize(sz),mult(m) {}
+#ifdef PROC_WORD32
+  CMPool(size_t sz,unsigned char m=0x2):
+    head(NULL),esize((sz%4) ? 4u*(1u+sz/4u) : sz),mult(m) {}
+#else
+  CMPool(size_t sz,unsigned char m=0x2):
+    head(NULL),esize((sz%8) ? 8u*(1u+sz/8u) : sz),mult(m) {}
+#endif
   ~CMPool() {}
   void* pAlloc();
   void  pFree(void* b);

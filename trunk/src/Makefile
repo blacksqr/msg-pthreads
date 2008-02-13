@@ -3,7 +3,7 @@ CC  = gcc
 CXX = g++
 SRC_DIR = .
 
-GDEFS   = -DHAVE_64BIT_TYPES -DBDB_ENV_FROM_APPS
+GDEFS   = -DHAVE_64BIT_TYPES -DBDB_ENV_FROM_APPS -DPROC_WORD32
 ACDEFFS = -DLINUX
 
 INC = -I../inc -I../Tcl/generic -I../Sql -I../BDb
@@ -29,7 +29,7 @@ LIBS =	-L../Tcl/unix -L../Sql/.libs -L../BDb/.libs \
 
 # ========================================================
 
-all:	its tclSql
+all:	its tclSql dbTst
 
 tclSql: $(BDb) $(OBJECTSQL)
 	$(CXX) $(CFLAGS) -o tclSql $(OBJECTSQL) $(BDb) ${LIBS}
@@ -37,13 +37,18 @@ tclSql: $(BDb) $(OBJECTSQL)
 its:	$(BDb) $(OBJECTS) 
 	$(CXX) $(CFLAGS) -o its $(OBJECTS) $(BDb) ${LIBS}
 
+dbTst:  ex_thread.o
+	$(CC) $(CFLAGS) -o dbTst ex_thread.o -lpthread -ldl -L../BDb/.libs -ldb-4.6
+
 clean:
-	rm -f /tmp/core *~ ../inc/*~ *.o ./bDb/*.o ./bDb/*~ ./tcl/*~ tclSql its
+	rm -f /tmp/core *~ ../inc/*~ *.o ./bDb/*.o ./bDb/*~ ./tcl/*~ tclSql its dbTst
 
 # ========================================================
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(ACDEFFS) $(INC) $< -o $@
+
 .cpp.o:
 	$(CXX) -c $(CFLAGS) $(ACDEFFS) $(INC) $< -o $@
+
 #*.o:	*.h

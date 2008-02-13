@@ -22,7 +22,7 @@ CAppTimer::CAppTimer() {
 }
 
 void CAppTimer::printBegin() {
-  LOG(L_ALERT, "\n***  Start Apps-Timer=0x%X/0x%X  ***\n",
+  LOG(L_ALERT, "\n***  Start Apps-Timer=0x%X/0x%X  ***\n\n",
       (uInt)(T.tv_sec),(uInt)(T.tv_usec));
 }
 

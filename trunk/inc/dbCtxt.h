@@ -26,6 +26,9 @@ class CDbCntx: public CContext {
   virtual void remRefHook() { send0(Evnt_DbReady, iCsCtxt); }
   virtual char onHalt();
   pTcl_Obj InsData(CTclInterp* ptcl);
+  // disable copy constructor.
+  CDbCntx(const CDbCntx&);
+  void operator = (const CDbCntx&);
  public:
   CDbCntx(uInt i);
   ~CDbCntx() {
