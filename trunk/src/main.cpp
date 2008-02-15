@@ -135,9 +135,10 @@ int main(int argc,char* argv[]) {
   {
     // start SysLog interface
     CSysLog _AppSysLog(outFl);
+    CTmThrd _TmThrd;
     pHKCtxt = new CHKCtxt(CContext::reservId());
     // Start timer thread
-    pTmThrd = new CTmThrd;
+    pTmThrd = &_TmThrd;
     // .....................
     // to clean start-up => all wait until unlock
     GlEvFifo.getCond().lock();

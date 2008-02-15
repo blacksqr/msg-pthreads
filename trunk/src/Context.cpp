@@ -252,10 +252,11 @@ uShort CHKCtxt::onTimer(uLong tNn,CEvent* pe, CWThread* pwt) {
 }
 
 int CHKCtxt::cmdProc(CWrkTcl* interp, int argc, Tcl_Obj* const argv[]) {
+  char St[128];
   const char* sCmd = interp->tGetVal(argv[1]);
   DBG("CHKCtxt::cmdProc sCmd - %s\n",sCmd);
   if(!strcmp(sCmd, "apStat")) {
-    Tcl_SetObjResult(interp->getInterp(),tSetObj(getStatus()));
+    Tcl_SetObjResult(interp->getInterp(),tSetObj(getStatus(St)));
     return TCL_OK;
   }
   return CContext::cmdProc(interp,argc,argv);

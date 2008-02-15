@@ -140,11 +140,9 @@ class CHKCtxt: public CContext {
   virtual int cmdProc(CWrkTcl* interp,int argc,Tcl_Obj* const argv[]);
   //char onFail() {} // IF to process system fail
   // Set info for wrk-tcl-script
-  char* getStatus() {
-    char stat[512];
-    char* pc = stat;
-    sprintf(pc,"HK=> %u \n",(uInt)rTime);
-    return strdup(stat);
+  char* getStatus(char* stat) {
+    sprintf(stat,"HK> %u\n",(uInt)rTime);
+    return stat;
   }
 };
 // ID of House-keeping context & global pointer

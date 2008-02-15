@@ -28,12 +28,12 @@ int RRand() {
 
 CDbCntx::CDbCntx(uInt i): CContext(i) {
   ctxtType = C_CTXT_DB;
+  cAr[0] = cAr[1] = cAr[2] = NULL;
 }
 
 pTcl_Obj CDbCntx::InsData(CTclInterp* pTcl) {
-  short strLen, k;
+  short k, strLen = 0;
   char rString[0xFF];
-  char* cAr[3] = {NULL,NULL,NULL};
   for(short n=0; n<3; ++n) {
     strLen = 10 + RRand()%8;
     for(k=0; k<strLen; ++k)

@@ -53,10 +53,9 @@ CFifo::CFifo() {
 }
 
 CFifo::~CFifo() {
-  while(beg != end) {
-    LOG(L_WARN,"CFifo::~CFifo> has Nn=%d elements - clean\n", nFf);
+  LOG(L_WARN,"CFifo::~CFifo %d> %d <%d clean\n", beg,nFf,end);
+  while(beg != end)
     CEvent::delEv(getEl()); // Clean memory
-  }
   rCnd.unlock();
   wMut.unlock();
 }

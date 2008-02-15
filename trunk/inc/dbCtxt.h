@@ -21,6 +21,7 @@ extern uInt iCsCtxt;
 // on-Test-event context
 class CDbCntx: public CContext {
  protected:
+  char* cAr[3];
   virtual uShort Run(CEvent* pe,CWThread* pwt);
   virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt);
   virtual void remRefHook() { send0(Evnt_DbReady, iCsCtxt); }
