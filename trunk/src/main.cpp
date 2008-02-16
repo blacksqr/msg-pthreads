@@ -29,10 +29,6 @@ extern "C" {
 uChar GlAppsFlag = '\0';
 CHKCtxt* pHKCtxt = NULL;
 
-CAppTimer appTimer;
-//static short weekMinute;
-time_t globCurentTime;
-
 // ======================================
 
 // helper fuctions: String phon => LLong
@@ -132,18 +128,14 @@ int main(int argc,char* argv[]) {
     ::gettimeofday(&x, 0);
     srandom(x.tv_sec * x.tv_usec);
   }
+  // to clean start-up => all wait until unlock
+  GlEvFifo.getCond().lock();
   {
     // start SysLog interface
     CSysLog _AppSysLog(outFl);
-    CTmThrd _TmThrd;
+    // Hause keep context
     pHKCtxt = new CHKCtxt(CContext::reservId());
-    // Start timer thread
-    pTmThrd = &_TmThrd;
     // .....................
-    // to clean start-up => all wait until unlock
-    GlEvFifo.getCond().lock();
-    // Print timer start point
-    appTimer.printBegin();
     {
       // Admin interpreter
       CAdmTcl tcl;

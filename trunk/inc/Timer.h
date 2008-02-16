@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <Thread.h>
 #include <memPool.h>
+#include <EvObj.h>
 
 class CTmThrd;
 
@@ -73,17 +74,17 @@ public std::multimap < uLong, CTmObj* >
 extern CTmQueue tmQueue;
 
 class CTmThrd: public CThreadObj {
+  friend class CFifo;
  protected:
-  const char* thName() { return "CTmThrd"; }
+  const char* thName() { return "tmThrd"; }
+  CTmThrd() {}
   // disable copy constructor.
   CTmThrd(const CTmThrd&);
   void operator = (const CTmThrd&);
  public:
-  CTmThrd() {}
-  virtual ~CTmThrd();
+  ~CTmThrd() {}
   virtual void* go();
 };
-extern CTmThrd* pTmThrd;
 
 #endif // ITS_TIME_H
 // $Log$

@@ -17,11 +17,11 @@ SLink* CMPool::grow(size_t esize,unsigned char mult) {
   const int overhead   = 14;
   const int chunk_size = (1024 * mult) - overhead;
   const int nelem      = chunk_size/esize - 1;
-  DBG(">CMPool::grow %u> nEl=%d Sz=%d\n",esize,nelem,chunk_size);
   // Alloc chunk memory
   SLink* pp;
   SLink* p = pp = (SLink*)malloc(chunk_size);
-  // format chunk memory
+  LOG(L_INFO,"CMPool::grow %u nEl=%d Sz=%d\n",esize,nelem,chunk_size);
+  // Setup chunk memory
   for(int k=0; k<nelem; ++k)
     pp = (*pp).nxt = (SLink*)((char*)pp + esize);
   (*pp).nxt = NULL; // last chunk

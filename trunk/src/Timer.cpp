@@ -20,7 +20,6 @@
 
 // Global timer queue
 CTmQueue tmQueue;
-CTmThrd* pTmThrd = NULL;
 // timer pool
 static CMPool CTmObj_mem(sizeof(CTmObj));
 
@@ -76,16 +75,10 @@ char CTmQueue::wait() {
 
 typedef CTmQueue::iterator IT;
 
-CTmThrd::~CTmThrd() {
-  // delete all tmOut from tmQueue
-  for(IT i=tmQueue.begin(); i!=tmQueue.end(); ++i)
-    CTmObj::delTm((CTmObj*)((*i).second));
-}
-
 void* CTmThrd::go() {
   uInt numTm = 0u;
-  LOG(L_NOTICE,"\n***** CTmThrd::go %c *****\n",
-      (GlAppsFlag & APPL_EXIT) ? '-' : 'v');
+  LOG(L_NOTICE,"\n***** CTmThrd::go%c *****\n",
+      (GlAppsFlag & APPL_EXIT) ? '-' : '+');
   while(!(GlAppsFlag & APPL_EXIT)) {
     if(!tmQueue.wait()) {
       // To signal Fifo on scope exit
@@ -131,7 +124,7 @@ void* CTmThrd::go() {
       DBG("CTmThrd::go TimeOut added To=%u Sz=%u\n",(uInt)tmQueue.nt,(uInt)tmQueue.size());
     }
   }
-  LOG(L_WARN,"CTmThrd::go> TERMINATED Now=%u\n",(uInt)tNow());
+  LOG(L_WARN,"CTmThrd::go TERMINATED Now=%u\n",(uInt)tNow());
   return NULL;
 }
 

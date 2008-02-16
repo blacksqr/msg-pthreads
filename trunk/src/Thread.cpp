@@ -23,7 +23,8 @@ extern "C" void* threadGo(void* arg) {
   // start thread in derived class
   void* pr = (static_cast<CThreadObj*>(arg))->go();
   (void)(static_cast<CThreadObj*>(arg))->go();
-  delete (static_cast<CThreadObj*>(arg)); // run virtual destructor
+  // run virtual destructor
+  delete (static_cast<CThreadObj*>(arg));
   return pr;
 }
 

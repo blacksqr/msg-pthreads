@@ -10,9 +10,9 @@
  * All Rights Reserved.
  * Contributor(s): Alex Goldenstein.<goldale.de@googlemail.com>
  */
+#include <Timer.h>
 #include <EvObj.h>
 #include <Global.h>
-#include <Thread.h>
 #include <getTime.h>
 #include <dprint.h>
 
@@ -44,7 +44,17 @@ void CEvent::delEv(pCEvent pt) {
 
 // ===============================================
 
+CAppTimer appTimer;
+//static short weekMinute;
+time_t globCurentTime;
+
 CFifo::CFifo() {
+  // Set timer start point
+  appTimer.printBegin();
+  // Start timer thread
+  new CTmThrd;
+
+
   beg = end = 0x00;
   gr1 = FfQueSize/3;
   gr2 = FfQueSize/2;
