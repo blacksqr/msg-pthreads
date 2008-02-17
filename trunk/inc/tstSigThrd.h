@@ -25,6 +25,9 @@ private:
   uChar cPoolFlg[1 + ctxtPoolSz/8];
   CUIntShrt hsh;
   uShort Nn,pFree;
+  // disable copy constructor.
+  CTstCtxtMgr(const CTstCtxtMgr&);
+  void operator = (const CTstCtxtMgr&);
 public:
   CTstCtxtMgr();
   ~CTstCtxtMgr() {}
@@ -39,6 +42,7 @@ extern CTstCtxtMgr tstCtxtMgr;
 //=================================================
 
 class CTstSgTh: public CEvThrd {
+  friend class CSigThrd;
  protected:
   uLong  sTm;   // Start time point
   uInt   nSend,DtTm,nMsg;
@@ -46,13 +50,15 @@ class CTstSgTh: public CEvThrd {
   const uShort nMsg0,nMsg1;   // nMsg1 >= nMsg0
   const uChar tm0, tm1;
   virtual CEvent* getEvent();
- public:
+  // Protected constructor
   CTstSgTh(uShort m0,uShort m1,uChar t0,uChar t1);
+ public:
   virtual ~CTstSgTh() {}
 };
 
 // send nMsg pro sec and makes pause to produce ALARM
 class CTstSgThX: public CEvThrd {
+  friend class CSigThrd;
  protected:
   uLong  sTm;     // Start time point
   uInt   CId[11];  // test Ctxt-id
@@ -62,8 +68,9 @@ class CTstSgThX: public CEvThrd {
   const uShort nMsg0,nMsg1;   // nMsg1 >= nMsg0
   const uChar tm0, tm1;
   virtual CEvent* getEvent();
- public:
+  // Protected constructor
   CTstSgThX(uShort m0,uShort m1);
+ public:
   virtual ~CTstSgThX() {}
 };
 

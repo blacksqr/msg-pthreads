@@ -19,7 +19,6 @@
 // TCL-if to signal threads
 int CSigThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
   int res = 0;
-  CThreadObj* p= NULL;
   pParam(argc, argv);
   const char* sCmd = interp->tGetVal(argv[1]);
   switch(*(sCmd++)) {
@@ -34,7 +33,7 @@ int CSigThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	      TGVal(int,m1,argv[4]);
 	      TGVal(short,t0,argv[5]);
 	      TGVal(short,t1,argv[6]);
-	      p = new CTstSgTh(m0,m1,t0,t1);
+	      CThreadObj* p = new CTstSgTh(m0,m1,t0,t1);
 	      res = p ? p->getTId() : 0;
 	    }
 	    break;
@@ -42,7 +41,7 @@ int CSigThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 	    if(!strcmp("tst",sThId) && (argc == 5)) {
 	      TGVal(int,m0,argv[3]);
 	      TGVal(int,m1,argv[4]);
-	      p = new CTstSgThX(m0,m1);
+	      CThreadObj* p = new CTstSgThX(m0,m1);
 	      res = p ? p->getTId() : 0;
 	    }
 	    break;
@@ -63,7 +62,6 @@ int CSigThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
 // TCL i-face to work threads
 int CWrkThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
   int ret = 0;
-  CThreadObj* p= NULL;
   //pParam(argc, argv);
   const char* sCmd = interp->tGetVal(argv[1]);
   switch(*(sCmd++)) {
@@ -71,10 +69,9 @@ int CWrkThrd::cmdProc(int argc,Tcl_Obj* const argv[]) {
       if(!strcmp("tart",sCmd) && (argc == 2)) {
 	for(uChar k=0x0; k<MAX_N_WTHREAD; ++k) {
 	  if(!pWrkThArr[k]) {
-	    p = new CWThread(k);
 	    DBG("CWrkThrd::cmdProc> Start %d WrkThread\n",k+1);
 	    // return thread ID
-	    ret = p ? k+1 : 0;
+	    ret = (new CWThread(k)) ? k+1 : 0;
 	    tSetResult(tSetObj(ret));
 	    break;
 	  }

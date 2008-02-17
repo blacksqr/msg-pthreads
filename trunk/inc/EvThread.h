@@ -41,8 +41,9 @@ class CEvThrd: public CThreadObj {
   // it used in hash to map external event => CtxtId
   // in base class - reserve id for new CtxtId
   uInt getCId() { return CContext::reservId(); }
- public:
+  // Protected constructor
   CEvThrd(uShort ka);
+ public:
   ~CEvThrd() {}
   void stop() { Flag |= STOP_EV_THRD; }
   virtual void* go();

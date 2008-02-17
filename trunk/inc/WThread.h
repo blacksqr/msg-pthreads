@@ -32,7 +32,7 @@ class CContext;
 // working thread - reads msg's from fifo
 //class CWThread: public CDbThread {
 class CWThread: public CThreadObj {
-  friend class CWrkTcl;
+  friend class CWrkThrd;
   // disable copy constructor.
   CWThread(const CWThread&);
   void operator = (const CWThread&);
@@ -51,11 +51,11 @@ class CWThread: public CThreadObj {
   uShort nWait;     // Num of wait for (seq == pCont->seq1)
   uChar  wtId, seq; // event sequence
   char   WStstRun;
+  CWThread(uChar id);
   // called from TCL command - getEvent
   int Run(pCEvent p) { return pCont->Run(p,this); }
   uInt tmDelta();
  public:
-  CWThread(uChar id);
   virtual ~CWThread();
   int cmdProc(CWrkTcl* ptcl,int argc,Tcl_Obj* const argv[]);
   pContext getCtxt() { return pCont; }
