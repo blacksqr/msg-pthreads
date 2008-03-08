@@ -21,11 +21,14 @@ const unsigned char _tmFlg_[] = {
 };
 
 class CPMutex {
+  // disable copy constructor.
+  CPMutex(const CPMutex&);
+  void operator = (const CPMutex&);
  protected:
   pthread_mutex_t Mut;
  public:
   CPMutex(const pthread_mutexattr_t* at=NULL) { pthread_mutex_init(&Mut, at); }
-  ~CPMutex() { pthread_mutex_destroy(&Mut); }
+  virtual ~CPMutex() { pthread_mutex_destroy(&Mut); }
   int lock() {
     //DBG(">CPMutex::lock\n");
     return pthread_mutex_lock(&Mut);
@@ -47,6 +50,57 @@ class CSglLock {
  public:
   CSglLock(CPMutex& m): mut(m) { mut.lock(); }
   ~CSglLock() { mut.unlock(); }
+};
+
+typedef unsigned int uInt;
+
+class CRWLock {
+  // disable copy constructor.
+  CRWLock(const CRWLock&);
+  void operator = (const CRWLock&);
+ protected:
+  pthread_rwlock_t rwl;
+ public:
+  CRWLock(const pthread_rwlockattr_t* attr=NULL) {
+    (void)pthread_rwlock_init(&rwl, attr);
+  }
+  virtual ~CRWLock() {
+    (void)pthread_rwlock_destroy(&rwl);
+  }
+  int rLock() { return pthread_rwlock_rdlock(&rwl); }
+  int rLtry() { return pthread_rwlock_tryrdlock(&rwl); }
+  int timedRLock(uInt tm) {
+    struct timespec to;
+    to.tv_sec  = tm / 100;
+    //           1000000000
+    to.tv_nsec = 10000000 * (tm % 100);
+    return pthread_rwlock_timedrdlock(&rwl, &to);
+  }
+  int wLock() { return pthread_rwlock_wrlock(&rwl); }
+  int wLtry() { return pthread_rwlock_trywrlock(&rwl); }
+  int timedWLock(uInt tm) {
+    struct timespec to;
+    to.tv_sec  = tm / 100;
+    //           1000000000
+    to.tv_nsec = 10000000 * (tm % 100);
+    return pthread_rwlock_timedwrlock(&rwl, &to);
+  }
+};
+
+class CSglWLock {
+ protected:
+  CPMutex& mut;
+ public:
+  CSglWLock(CPMutex& m): mut(m) { mut.lock(); }
+  ~CSglWLock() { mut.unlock(); }
+};
+
+class CSglRLock {
+ protected:
+  CPMutex& mut;
+ public:
+  CSglRLock(CPMutex& m): mut(m) { mut.lock(); }
+  ~CSglRLock() { mut.unlock(); }
 };
 
 class CPCond: public CPMutex {
