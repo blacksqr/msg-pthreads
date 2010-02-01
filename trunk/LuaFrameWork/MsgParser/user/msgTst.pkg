@@ -1,0 +1,15 @@
+
+void ansleep(int timeOut);
+
+class CWrkLua {
+  int getEvent();
+  int ctxtType();
+  char* hkCtxtState();
+  void sendMsg(int ev, int id, int pp);
+  void hkCtxtTm(int cid, int tm, int type, int f);
+  const char* test();
+  int getThId();
+};
+inline void getWTObj(void* pp, CWrkLua*& px=0);
+
+$cfile "msgTst.h"
