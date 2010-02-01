@@ -1,0 +1,32 @@
+// Flag to stop new context
+$extern char stopNewCtxt;
+
+void ansleep(int timeOut);
+
+// Start different signaling threads
+void tstSgThX(int m1, int m2);
+void tstSgTh(int m1, int m2, int t1, int t2);
+void tstFsmTh(int m);
+// Start/Stop work threads
+int startWrkTh();
+int stopWrkTh();
+// Reload work script
+int rLoadScrpt();
+// Get number of running work threads
+int numRunWTh();
+// Common application tasks
+void aStart();
+int  aStop();
+// Set new HauseKeep timeout
+void checkTOut(int tm, short tm_type, short sIi);
+void stopAllSgTh();
+// Stop new context factory
+const char* stopCFactory(int n=0);
+// Delete all context from hashCntxt
+void ctxtHashClean();
+// Exit all work threads & timer
+void preExitApps();
+
+$cfile "tAdminLua.h"
+
+// $Id: tAdminLua.pkg 323 2010-01-17 20:29:38Z asus $

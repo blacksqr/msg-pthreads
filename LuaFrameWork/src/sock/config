@@ -1,0 +1,32 @@
+#------
+# LuaSocket makefile configuration
+#------
+# Output file names
+EXT=so
+SOCKET_V=2.0.2
+MIME_V=1.0.2
+#SOCKET_SO=socket.$(EXT).$(SOCKET_V) 
+SOCKET_SO=libLSock.$(EXT).$(SOCKET_V) 
+#MIME_SO=mime.$(EXT).$(MIME_V)
+MIME_SO=libLMime.$(EXT).$(MIME_V)
+#UNIX_SO=unix.$(EXT)
+UNIX_SO=libLUnix.$(EXT)
+
+#------
+# Top of your Lua installation
+# Relative paths will be inside the src tree
+#
+INSTALL_TOP_SHARE=/Xxx/LuaFr/luasocket-2.0.2/Inst
+INSTALL_TOP_LIB=/Xxx/LuaFr/luasocket-2.0.2/Inst
+INSTALL_DATA=cp
+INSTALL_EXEC=cp
+
+#------
+# Compiler and linker settings
+# for Linux
+CC= gcc
+LD= gcc
+LUAINC= /Xxx/LuaFr/Lua/src
+DEF= #-DLUASOCKET_DEBUG 
+CFLAGS= -I$(LUAINC) $(DEF) -pedantic -Wall -O2 -fpic #-DLUASOCKET_DEBUG
+LDFLAGS= -O -shared -fpic
