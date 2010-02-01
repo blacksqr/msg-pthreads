@@ -1,0 +1,25 @@
+To produce binary:
+  cd ./src
+  make
+
+Some important configuration files
+Work's thread TCL script                    - ./src/tcl/wrkThread.tcl
+Configuration and administration TCL script - ./src/tcl/admin.tcl
+
+
+to start Demo
+   - Set Libs search path
+             cd msg-pthreads
+	     .  ./set_env.sh
+
+   - Switch in src directory
+             cd ./src
+	     
+There are different mod's to run demo:
+  ./its
+    - run as command line program (log output to <stdout> - for debug)
+  ./its -D -d 4 -f /tmp/its_demo.log
+    - run as a daemon process
+	-D       - switch in daemon mode
+        -d #     - log level 0 - 4 (4 is verbose one)
+        -f <...> - name of log-file
