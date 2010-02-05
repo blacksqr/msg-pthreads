@@ -19,37 +19,8 @@
 extern uInt iCsCtxt;
 extern uInt iDbCtxt;
 
-// FSM - FiniteStateMaschine context
-class CFsmCtxt: public CContext {
-  // disable copy constructor.
-  CFsmCtxt(const CFsmCtxt&);
-  void operator = (const CFsmCtxt&);
- protected:
-  char state;    // current FSM state (Init state=0)
-  uChar inLua;   // Flag to return in TCL from state func
-  virtual char onHalt();
-  // called from WThread => Return ~0-in Lua; 0-get new Event
-  virtual uShort Run(CEvent* pe,CWThread* pwt);
-  virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt=NULL);
-  void onEvError(CEvent* pe,char flg, char state);
-  char onIdle(   CEvent* pe,CWThread* pwt,char flg);
-  char onRing(   CEvent* pe,CWThread* pwt,char flg);
-  char onProcid( CEvent* pe,CWThread* pwt,char flg);
-  char onConn(   CEvent* pe,CWThread* pwt,char flg);
-  char onDiscon( CEvent* pe,CWThread* pwt,char flg);
-  typedef char ( CFsmCtxt::*TpStateFunc)(CEvent* pe,CWThread* pwt,char flg);
-  TpStateFunc pSFunc[5];  // Array of pointers to state function
-  CFsmCtxt(uInt i);
-  ~CFsmCtxt() {}
- public:
-  // memPool - new & delete
-  static CContext* newFsm(uInt i);
-  static void delFsm(CFsmCtxt* p);
-};
-
-// ======================================================
-
 // on-Test-event context
+
 class CTstCntx: public CContext {
   // disable copy constructor.
   CTstCntx(const CTstCntx&);
@@ -71,4 +42,4 @@ class CTstCntx: public CContext {
 
 #endif // TST_CNTXT_H
 
-// $Id: tstCntxt.h 323 2010-01-17 20:29:38Z asus $
+// $Id: tstCntxt.h 349 2010-02-05 09:51:15Z asus $
