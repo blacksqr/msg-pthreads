@@ -13,94 +13,12 @@
 #include <dprint.h>
 #include <tstCntxt.h>
 #include <tstSigThrd.h>
-//#include <workLua.h>
 #include <WThread.h>
 #include <getTime.h>
 
 // event pool
-static CMPool CFsm_mem(sizeof(CFsmCtxt), 0x20);
 static CMPool CTCtxt_mem(sizeof(CTstCntx), 0x80);
 
-// ======================================================
-
-CContext* CFsmCtxt::newFsm(uInt i) {
-  CFsmCtxt* p = new (CFsm_mem.pAlloc()) CFsmCtxt(i);
-  p->hashCId();
-  return p;
-}
-
-void CFsmCtxt::delFsm(CFsmCtxt* pt) {
-  pt->~CFsmCtxt();
-  CFsm_mem.pFree(pt);
-}
-
-// ======================================================
-
-// Registration of state methods in state array
-CFsmCtxt::CFsmCtxt(uInt i): CContext(i) {
-  inLua = state = 0;
-  pSFunc[0] = &CFsmCtxt::onIdle;
-  pSFunc[1] = &CFsmCtxt::onRing;
-  pSFunc[2] = &CFsmCtxt::onProcid;
-  pSFunc[3] = &CFsmCtxt::onConn;
-  pSFunc[4] = &CFsmCtxt::onDiscon;
-}
-
-char CFsmCtxt::onHalt() {
-  DBG("CFsmCtxt::onHalt %u\n",cId);
-  return '\0';
-}
-
-uShort CFsmCtxt::Run(CEvent* pe,CWThread* pwt) {
-  delTimer(TOut_FsmSwitch);
-  state = (this->*pSFunc[(short)state])(pe,pwt,'e');
-  if(state < 0)
-    onEvError(pe,'e',state);  // Error handling
-  setTimer(1777,TOut_FsmSwitch);
-  return (uShort)inLua;
-}
-
-uShort CFsmCtxt::onTimer(uLong tn,CEvent* pe,CWThread* pwt) {
-  if(isTimerOn(TOut_FsmSwitch)) {
-    state = (this->*pSFunc[(short)state])(pe,pwt,'t');
-    if(state < 0)
-      onEvError(pe,'t',state);  // Error handling
-    setTimer(1777,TOut_FsmSwitch);
-  }
-  return (uShort)inLua;
-}
-
-
-char CFsmCtxt::onIdle(CEvent* pe,CWThread* pwt,char flg) {
-  DBG("CFsmCtxt::onIdle %u -%c- 0x%X\n",cId,flg,pe->getEv());
-  return '\1';
-}
-
-char CFsmCtxt::onRing(CEvent* pe,CWThread* pwt,char flg) {
-  DBG("CFsmCtxt::onRing %u -%c- 0x%X\n",cId,flg,pe->getEv());
-  return '\2';
-}
-
-char CFsmCtxt::onProcid(CEvent* pe,CWThread* pwt,char flg) {
-  DBG("CFsmCtxt::onProcid %u -%c- 0x%X\n",cId,flg,pe->getEv());
-  return '\3';
-}
-
-char CFsmCtxt::onConn(CEvent* pe,CWThread* pwt,char flg) {
-  DBG("CFsmCtxt::onConn %u -%c- 0x%X\n",cId,flg,pe->getEv());
-  return '\4';
-}
-
-char CFsmCtxt::onDiscon(CEvent* pe,CWThread* pwt,char flg) {
-  DBG("CFsmCtxt::onDiscon %u -%c- 0x%X\n",cId,flg,pe->getEv());
-  return '\0';
-}
-
-void  CFsmCtxt::onEvError(CEvent* pe,char flg, char state) {
-  DBG("CFsmCtxt::onEvError %u -%d-%d-\n",cId,flg,state);
-}
-
-// ======================================================
 // ======================================================
 
 CTstCntx* CTstCntx::newTCtxt(uInt i) {
@@ -157,4 +75,4 @@ char CTstCntx::onHalt() {
   return '\0';
 }
 
-// $Id: tstCntxt.cpp 323 2010-01-17 20:29:38Z asus $
+// $Id: tstCntxt.cpp 349 2010-02-05 09:51:15Z asus $

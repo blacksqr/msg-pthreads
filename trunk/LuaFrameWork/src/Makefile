@@ -1,4 +1,4 @@
-# $Id: Makefile 323 2010-01-17 20:29:38Z asus $
+# $Id: Makefile 349 2010-02-05 09:51:15Z asus $
 CC  = gcc
 CXX = g++
 #CC  = /usr/Xxx/IcNova/build_avr32/staging_dir/usr/bin/avr32-linux-uclibc-gcc
@@ -15,8 +15,8 @@ TOLUA = $(TOPD)/tolua-5.1b
 
 INC = -I/Xxx/FrWrk/Sql -I$(LUA) -I$(TOLUA)/include -I. -I../inc 
 
-CFLAGS = -O2 -pipe -Wall -pthread -mno-align-double -Wno-deprecated -DTOLUA_RELEASE
-#CFLAGS = -g  -pipe -Wall -pthread -mno-align-double -Wno-deprecated -DTOLUA_RELEASE
+CFLAGS = -O2 -pipe -Wall -pthread -mno-align-double -DTOLUA_RELEASE
+#CFLAGS = -g  -pipe -Wall -pthread -mno-align-double -DTOLUA_RELEASE
 # -DNO_DEBUG -pg -DBIG_TmQueue -DBIG_FIFO 
 
 PKGFILE   = tAdminLua.pkg tWrkLua.pkg
@@ -25,7 +25,7 @@ OBJECTS = \
 	tWrkLua.o tWrkLuabind.o \
 	tAdminLua.o tAdminLuabind.o \
 	stlObj.o memPool.o pMutex.o getTime.o daemon.o Thread.o dprint.o \
-	EvObj.o WThread.o Context.o EvThread.o Timer.o \
+	EvObj.o WThread.o Context.o EvThread.o Timer.o fsmCtxt.o \
 	tstSigThrd.o tstCntxt.o cashCtxt.o dbCntxt.o \
 	main.o # udpSock.o
 
@@ -58,6 +58,8 @@ clean:
 .c.o:
 	$(CC)  -c $(CFLAGS) $(INC) $< -o $@
 .cpp.o:
-	$(CXX) -c $(CFLAGS) $(INC) $< -o $@
+	$(CXX) -c $(CFLAGS) -Wno-deprecated $(INC) $< -o $@
+#	$(CXX) -c $(CFLAGS)  $(INC) $< -o $@
+
 #
-# $Id: Makefile 323 2010-01-17 20:29:38Z asus $
+# $Id: Makefile 349 2010-02-05 09:51:15Z asus $

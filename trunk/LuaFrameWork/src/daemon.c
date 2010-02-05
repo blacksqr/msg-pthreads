@@ -89,7 +89,7 @@ out:
     close(fd);
   }
   errno = 0;  /* probably got set to EBADF from a close */
-  chdir("/tmp");
+  fd = chdir("/tmp");
   umask(0);
   if(ignsigcld) {
 #ifdef	SIGTSTP
@@ -100,4 +100,4 @@ out:
   }
 }
 
-// $Id: daemon.c 299 2010-01-09 22:19:52Z asus $
+// $Id: daemon.c 349 2010-02-05 09:51:15Z asus $
