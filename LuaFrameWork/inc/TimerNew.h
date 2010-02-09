@@ -45,7 +45,7 @@ class CTmObj {
 
 // ===================================
 
-// Timer optimization is based on :
+// The base of the timer optimization --
 //   The number of the short timeout's is exponentially
 //   more as the number of the long one
 
@@ -111,6 +111,7 @@ class CTmQueue {
 
   // Get ordered list of CTmObj objects with time < tm
   CTmObj* get(uLong tm);
+  CTmObj* operator () (uLong tm) { return get(tm); }
 };
 
 // ===================================
@@ -145,4 +146,4 @@ extern CTmThrd* pTimeThrd;
 
 #endif // FRACT_TIME_H
 
-// $Id: TimerNew.h 317 2010-01-15 17:34:59Z asus $
+// $Id: TimerNew.h 350 2010-02-08 18:38:31Z asus $
