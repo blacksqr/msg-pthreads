@@ -278,7 +278,7 @@ class CFctryGen_$FN : public CMsgFactory {
     bf = msgId.reStore(bf);
     char* p = bf;
     bf += mLen.get();
-    printf("CMsgFactory::reStore  Len=%u  mId=%u\n",mLen(),msgId());
+    //printf("CMsgFactory::reStore  Len=%u  mId=%u\n",mLen(),msgId());
     switch(msgId.get()) {
       <<<case CMsgGen_$Nm_id: { return new CMsgGen_$Nm(p); }>>>
     }
@@ -672,4 +672,4 @@ close HFF;
 #####################
 #
 
-# $Id: modelGen.pl 348 2010-01-29 21:45:52Z asus $
+# $Id: modelGen.pl 350 2010-02-08 18:38:31Z asus $

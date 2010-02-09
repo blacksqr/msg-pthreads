@@ -34,6 +34,7 @@ $data =~ s/\[/[ /g;
 $data =~ s/\s+/ /g; # reduce to one space
 $data =~ s/ ;/;/g;
 $data =~ s/ ,/;/g;
+$data =~ s/"/\\"/g;
 $data =~ s/^ //;
 
 printf "\n$data\n\n";
