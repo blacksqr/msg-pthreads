@@ -325,14 +325,16 @@ void* CWThread::go() {
     nReload = nRun;
     strcpy((char*)appsHome,"wrkTh.lua");
     DBG("CWThread::go %u wrkTh.lua %d<>%d %s\n",wtId,nReload,nRun,appsHomeArr);
-    int rrr = luaL_dofile(&WLua,appsHomeArr);
-    LOG(L_CRIT,"CWThread::go=%d  %u Reload wrkLuaScript Now=%u\n",rrr,wtId,(uInt)tNow());
-    if(rrr) {
-      // Put Evnt_HsKeepCtxt - Inform HauseKeep about fail wrk-th
-      uInt ctxId = pCont ? pCont->getId() : 0u;
-      pCEvent ev = CEvent::newEv(HkCId,Evnt_HsKeepCtxt,ctxId,hk_wTclFail);
-      ev->put();
-      ev->sign();
+    {
+      int rrr = luaL_dofile(&WLua,appsHomeArr);
+      LOG(L_CRIT,"ERR - CWThread::go=%u wrkLuaScript fail-%d Now=%u\n",wtId,rrr,(uInt)tNow());
+      if(rrr) {
+        // Put Evnt_HsKeepCtxt - Inform HauseKeep about fail wrk-th
+        uInt ctxId = pCont ? pCont->getId() : 0u;
+        pCEvent ev = CEvent::newEv(HkCId,Evnt_HsKeepCtxt,ctxId,hk_wTclFail);
+        ev->put();
+        ev->sign();
+      }
     }
   }
   lua_close(&WLua);
@@ -344,4 +346,9 @@ void CWThread::setTimer(int cid, int tm, int type, int f) {
   cid ? pTimeThrd->set(tm,HkCId,type,f) : pCont->setTimer((uLong)tm,(uChar)type,(uShort)f);
 }
 
-// $Id: WThread.cpp 349 2010-02-05 09:51:15Z asus $
+// Called from CEvent::sign method
+uChar WThreadRun() {
+  return CWThread::nRThrd();
+}
+
+// $Id: WThread.cpp 358 2010-03-14 18:51:56Z asus $
