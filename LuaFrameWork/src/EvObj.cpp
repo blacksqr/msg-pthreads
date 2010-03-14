@@ -42,6 +42,13 @@ void CEvent::delEv(pCEvent pt) {
   CEvent_mem.pFree(pt);
 }
 
+extern uChar WThreadRun();
+
+void CEvent::sign() {
+  if(GlEvFifo.qSize() < (WThreadRun()/2))
+    GlEvFifo.signal();
+}
+
 // ===============================================
 
 CFifo::CFifo() {
@@ -106,4 +113,4 @@ pCEvent CFifo::getEl() {
   return pObj[beg++];
 }
 
-// $Id: EvObj.cpp 299 2010-01-09 22:19:52Z asus $
+// $Id: EvObj.cpp 358 2010-03-14 18:51:56Z asus $

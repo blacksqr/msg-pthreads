@@ -1,4 +1,4 @@
--- $Id: admin.lua 316 2010-01-14 22:48:51Z asus $
+-- $Id: admin.lua 358 2010-03-14 18:51:56Z asus $
 -- Config/Admun script
 function puts(...)
    io.write(string.format(...))
@@ -25,7 +25,7 @@ do
       nth = startWrkTh()
       puts(">Adm-Lua: start %d work thread\n",nth)
       ansleep(3)
-   until nth == 8
+   until nth == 8 -- Start # work-threads pool
 end
 
 -- Start signaling thread
@@ -43,7 +43,7 @@ puts("\n>Adm-Lua: START ALL \n\n")
 aStart()
 ansleep(77)
 
--- Start ADMIN loop
+-- ADMIN loop
 do
    local mCtrl
    local remLink, appExit = "", ""
@@ -94,3 +94,5 @@ ansleep(3333)
 puts(">Adm-Lua: Stop work-threads and timer\n", preExitApps())
 ansleep(777)
 print(">Adm-Lua: *** Exit admin script ***\n\n")
+
+-- $Id: admin.lua 358 2010-03-14 18:51:56Z asus $

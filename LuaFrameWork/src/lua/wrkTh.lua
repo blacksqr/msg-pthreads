@@ -1,5 +1,10 @@
 -- LUA work thread script
+
 --
+luaPath = "/Xxx/AsEee/LuaFr/src/lua/"
+package.path = luaPath.."?;"..luaPath.."?.lua"
+require "sqlite3"
+
 function puts(...)
    io.write(string.format(...))
 end
@@ -7,11 +12,11 @@ end
 puts("- - - -- WrkTh LUA_PATH=>%s\n", os.getenv("LUA_PATH"))
 puts("- - - -- WrkTh LUA_CPATH=>%s\n", os.getenv("LUA_CPATH"))
 
-local wtobj, x
-x = getWLuaObj()
-wtobj, x = getWTObj(x)
+local wtobj, x, xt
+wtobj, x = getWTObj(getWLuaObj())
 
-local xt = 7 - wtobj:getThId()
+xt = wtobj:getThId()
+
 --local led = assert(io.open(string.format("/sys/class/leds/led%d\:green/brightness",xt), "w+"))
 --local led = io.open(string.format("/sys/class/leds/led%d\:green/brightness",xt), "w+")
 
@@ -34,3 +39,5 @@ do
 end
 
 --led:close()
+
+-- $Id: wrkTh.lua 357 2010-02-22 20:17:53Z asus $

@@ -86,7 +86,7 @@ class CEvent {
   uChar put(char x = '\0') { return x ? GlEvFifo.addTopEl(this) : GlEvFifo.addEl(this); }
   uChar sigThId() { return sgThId; }
   // send Signal
-  void sign() { GlEvFifo.signal(); }
+  void sign();
   // if event to start new context
   char newCtx() { return nCtxt; }
   pCEvent stripTm() { Event -= TOut_Shift; return this; }
@@ -110,4 +110,4 @@ class CProcAllEv {
 
 #endif // EVOBJ_H
 
-// $Id: EvObj.h 306 2010-01-12 13:23:16Z asus $
+// $Id: EvObj.h 358 2010-03-14 18:51:56Z asus $
