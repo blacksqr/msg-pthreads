@@ -2,7 +2,7 @@
 CC= gcc
 AR= ar rcu
 
-TOPD  = /Xxx/LuaFr
+TOPD  = /Xxx/AsEee/LuaFr
 CFLAGS = -O2 -pipe -Wall -pthread -mno-align-double
 #CFLAGS = -g -pipe -Wall -pthread -mno-align-double
 INC = -I. -I$(TOPD)/Lua/src

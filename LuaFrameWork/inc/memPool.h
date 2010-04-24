@@ -26,24 +26,24 @@ class CMPool {
   CMPool(const CMPool&);
   void operator = (const CMPool&);
 
- private:
+ protected:
   CPMutex M;
   SLink*  head;
   const unsigned short esize;
   const unsigned char  mult;
 
-  static SLink* grow(size_t sz,unsigned char m);
+  SLink* grow();
  public:
-  CMPool(size_t sz,unsigned char m=0x2): head(NULL),esize(sz),mult(m) {}
+  CMPool(size_t sz,unsigned char m=0x8): head(NULL),esize(sz),mult(m) {}
   ~CMPool() {}
   void* pAlloc();
   void  pFree(void* b);
 };
-// Placement operator new
+
+// Placement operator new & delete
 extern void* operator new(size_t, void* bf) throw();
-// Placement operator delete
 extern void operator delete(void* p, CMPool& pool);
 
 #endif // MEM_POOL_H
 
-// $Id: memPool.h 339 2010-01-24 20:11:56Z asus $
+// $Id: memPool.h 359 2010-03-20 21:11:12Z asus $

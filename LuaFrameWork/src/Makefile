@@ -1,4 +1,4 @@
-# $Id: Makefile 357 2010-02-22 20:17:53Z asus $
+# $Id: Makefile 360 2010-03-27 13:25:05Z asus $
 CC  = gcc
 CXX = g++
 #CC  = /usr/Xxx/IcNova/build_avr32/staging_dir/usr/bin/avr32-linux-uclibc-gcc
@@ -17,8 +17,8 @@ SQL   = $(TOPD)/Sql
 
 INC = -I$(SQL) -I$(LUA) -I$(TOLUA)/include -I. -I../inc
 
-#CFLAGS = -O2 -pipe -Wall -pthread -mno-align-double -DTOLUA_RELEASE
-CFLAGS = -g  -pipe -Wall -pthread -mno-align-double
+#CFLAGS = -O2   -pipe -Wall -pthread -mno-align-double -DTOLUA_RELEASE
+CFLAGS = -g -O -pipe -Wall -pthread -mno-align-double
 # -DNO_DEBUG -pg -DBIG_TmQueue -DBIG_FIFO 
 
 PKGFILE   = tAdminLua.pkg tWrkLua.pkg
@@ -64,4 +64,4 @@ clean:
 #	$(CXX) -c $(CFLAGS) $(INC) $< -o $@
 
 #
-# $Id: Makefile 357 2010-02-22 20:17:53Z asus $
+# $Id: Makefile 360 2010-03-27 13:25:05Z asus $

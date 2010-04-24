@@ -13,14 +13,12 @@
 #include <dprint.h>
 #include <memPool.h>
 
-SLink* CMPool::grow(size_t esize,unsigned char mult) {
-  const int overhead   = 14;
-  const int chunk_size = (1024 * mult) - overhead;
-  const int nelem      = chunk_size/esize - 1;
+SLink* CMPool::grow() {
+  const int chunk_size = 0x800 * mult;
+  const int nelem      = (chunk_size / esize) - 1;
   DBG(">CMPool::grow %u> nEl=%d Sz=%d\n",esize,nelem,chunk_size);
   // Alloc chunk memory
-  SLink* pp;
-  SLink* p = pp = (SLink*)malloc(chunk_size);
+  SLink *pp, *p = pp = (SLink*)malloc(chunk_size);
   // format chunk memory
   for(int k=0; k<nelem; ++k)
     pp = (*pp).nxt = (SLink*)((char*)pp + esize);
@@ -30,24 +28,21 @@ SLink* CMPool::grow(size_t esize,unsigned char mult) {
 
 void* CMPool::pAlloc() {
   CSglLock sl(M);
-  if(!head)
-    head = grow(esize,mult);
-  SLink* p = head;
-  //DBG(">CMPool::pAlloc %u>\t===    p=0x%X head=0x%X<\n",esize,(int)head,(int)(*head).nxt);
-  head = (*head).nxt;
+  SLink* p = head ? head : grow();
+  //DBG(">CMPool::pAlloc %u>\tp=0x%X head=0x%X<\n",esize,(int)head,(int)(*head).nxt);
+  head = p->nxt;
   return (void*)p;
 }
 
 void CMPool::pFree(void* b) {
   CSglLock sl(M);
-  //DBG(">CMPool::pFree %u>\t===    b=0x%X head=0x%X<===\n",esize,(int)b,(int)head);
+  //DBG(">CMPool::pFree %u>\tb=0x%X head=0x%X<===\n",esize,(int)b,(int)head);
   SLink* p = (SLink*)b;
   p->nxt = head;
   head = p;
-  //DBG(">CMPool::pFree %u>\t=== head=0x%X  nxt=0x%X<<<<\n",esize,(int)head,(int)(*head).nxt);
 }
 
 void* operator new(size_t, void* bf) throw() { return bf; }
 void operator delete(void* p, CMPool& pool)  { pool.pFree(p); }
 
-// $Id: memPool.cpp 299 2010-01-09 22:19:52Z asus $
+// $Id: memPool.cpp 360 2010-03-27 13:25:05Z asus $

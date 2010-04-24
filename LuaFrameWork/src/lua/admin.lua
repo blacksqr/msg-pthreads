@@ -1,4 +1,4 @@
--- $Id: admin.lua 358 2010-03-14 18:51:56Z asus $
+-- $Id: admin.lua 359 2010-03-20 21:11:12Z asus $
 -- Config/Admun script
 function puts(...)
    io.write(string.format(...))
@@ -25,15 +25,15 @@ do
       nth = startWrkTh()
       puts(">Adm-Lua: start %d work thread\n",nth)
       ansleep(3)
-   until nth == 8 -- Start # work-threads pool
+   until nth == 6 -- Start # work-threads pool
 end
 
 -- Start signaling thread
 do
-   local m1 = 4
+   local m1 = 111
    puts(">Adm-Lua: start tstFsmTh thread %d\n",m1)
    tstFsmTh(m1)
-   local m2, t1, t2 = 9, 9, 1
+   local m2, t1, t2 = 777, 8, 2
    puts(">Adm-Lua: start tstSgTh thread %d %d %d %d\n",m1,m2,t1,t2)
    tstSgTh(m1, m2, t1, t2)
 end
@@ -47,7 +47,7 @@ ansleep(77)
 do
    local mCtrl
    local remLink, appExit = "", ""
-   local Hst, Prt = "localhost", "9383"
+   local Hst, Prt = "localhost", "4567"
 
    function tnLink(S)
       local er, ack, mCmd = "", "", ""
@@ -95,4 +95,4 @@ puts(">Adm-Lua: Stop work-threads and timer\n", preExitApps())
 ansleep(777)
 print(">Adm-Lua: *** Exit admin script ***\n\n")
 
--- $Id: admin.lua 358 2010-03-14 18:51:56Z asus $
+-- $Id: admin.lua 359 2010-03-20 21:11:12Z asus $

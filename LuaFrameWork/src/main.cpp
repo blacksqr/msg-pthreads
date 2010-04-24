@@ -46,19 +46,22 @@ long long ph2LLong(char* ph) {
 }
 
 // ======================================
+
+// Wrapper for STDOUT & STDERR
 const char* outNull = "/dev/null";
 
 class CSysLog {
 public:
   CSysLog(const char* of=outNull)  {
     if(!(GlAppsFlag & LOG_IN_STDERR)) {
-      ::openlog("Its", LOG_CONS | LOG_PID, /*LOG_USER*/ LOG_DAEMON);
+      ::openlog("Its", LOG_CONS | LOG_PID, /*LOG_USER*/LOG_DAEMON);
     } else if(GlAppsFlag & DAEMON_MODE) {
-      FILE* fin = fopen(outNull, "a+");
-      FILE* fof = fopen(of, "a+");
-      int x = dup(1);
-      printf("CSysLog constructor %s %d\n",fof?"Ok":"Err",x);
-      fclose(fin);
+      close(0); close(1); close(2);
+      int   fin =  open(outNull, O_RDONLY);
+      FILE* fof = fopen(of,      "w+");
+      int r = dup(1);
+      LOG(L_INFO, "CSysLog constructor %s %d\n", fof ? "Ok":"Err", r);
+      close(fin);
     }
   }
   ~CSysLog() {
@@ -66,7 +69,7 @@ public:
       ::closelog();
     } else if(GlAppsFlag & DAEMON_MODE) {
       fclose(stdout);
-      fclose(stderr);
+      close(2);
     }
   }
 };
@@ -101,7 +104,7 @@ int main(int argc,char* argv[]) {
       // File to print LOG
       argc -= 2;
       outFl = argv[2];
-      argv = &argv[2];
+      argv  = &argv[2];
       continue;
     }
     if(!strcmp(argv[1],"-d")) {
@@ -152,24 +155,15 @@ int main(int argc,char* argv[]) {
     DBG(">Main> Timer test Tm=%lu-%lu   N=%lu\n",tTm,Ttx,ntt);
 
     DBG(">Main> Timer genau Tm=%lu\n",tNow());
-    nsleep(314);
-    DBG(">Main> Timer genau 314 Tm=%lu\n",tNow());
-    nsleep(79);
-    DBG(">Main> Timer genau 79 Tm=%lu\n",tNow());
-    nsleep(7221);
-    DBG(">Main> Timer genau 7221 Tm=%lu\n",tNow());
-    nsleep(7);
-    DBG(">Main> Timer genau 7 Tm=%lu\n",tNow());
-    nsleep(713);
-    DBG(">Main> Timer genau 713 Tm=%lu\n",tNow());
-    nsleep(113);
-    DBG(">Main> Timer genau 113 Tm=%lu\n",tNow());
-    nsleep(1713);
-    DBG(">Main> Timer genau 1713 Tm=%lu\n",tNow());
-    nsleep(3013);
-    DBG(">Main> Timer genau 3013 Tm=%lu\n",tNow());
-    nsleep(17);
-    DBG(">Main> Timer genau 17 Tm=%lu\n",tNow());
+    nsleep(314);  DBG(">Main> Timer genau 314 Tm=%lu\n",tNow());
+    nsleep(79);   DBG(">Main> Timer genau 79 Tm=%lu\n",tNow());
+    nsleep(7221); DBG(">Main> Timer genau 7221 Tm=%lu\n",tNow());
+    nsleep(7);    DBG(">Main> Timer genau 7 Tm=%lu\n",tNow());
+    nsleep(713);  DBG(">Main> Timer genau 713 Tm=%lu\n",tNow());
+    nsleep(113);  DBG(">Main> Timer genau 113 Tm=%lu\n",tNow());
+    nsleep(1713); DBG(">Main> Timer genau 1713 Tm=%lu\n",tNow());
+    nsleep(3013); DBG(">Main> Timer genau 3013 Tm=%lu\n",tNow());
+    nsleep(17);   DBG(">Main> Timer genau 17 Tm=%lu\n",tNow());
   }
 #endif // Timer test
   {
@@ -203,4 +197,4 @@ int main(int argc,char* argv[]) {
   return rrr;
 }
 
-// $Id: main.cpp 318 2010-01-15 20:36:18Z asus $
+// $Id: main.cpp 362 2010-04-18 13:46:22Z asus $

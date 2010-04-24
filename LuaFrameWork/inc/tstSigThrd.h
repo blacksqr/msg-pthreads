@@ -84,12 +84,10 @@ class CTstFsmTh: public CEvThrd {
   SFsmState fsmCtxtAr[FSM_ARR_SIZE];
   virtual CEvent* getEvent();
  public:
-  CTstFsmTh(int m): CEvThrd(5000/m),nMsg(1000000000/m) {
-    tName = "tstFsmTh";
-  }
+  CTstFsmTh(int m);
   virtual ~CTstFsmTh() {}
 };
 
 #endif // TST_SIG_TH_H
 
-// $Id: tstSigThrd.h 299 2010-01-09 22:19:52Z asus $
+// $Id: tstSigThrd.h 360 2010-03-27 13:25:05Z asus $
