@@ -13,11 +13,11 @@
 # Contributor(s): Alex Goldenstein.<goldale.de@googlemail.com>
 #
 
-my $modelDir = "./model";
-my $genDir   = "./gen";
-
 my $incDir   = "./inc";
 my $srcDir   = "./src";
+
+my $genDir   = "./gen";
+my $modelDir = "./model";
 
 my $text     = "";
 
@@ -32,7 +32,7 @@ class CStructGen_$Nm {
  protected:
   // Member list (sorted in mandatory order)
   // Big el. first & abc for el-ts of the same size
-  <<<$TypeNm $ValNm;>>>
+  <<< $TypeNm $ValNm;>>>
   TBitMap<$N> bm;  // BitMap
   bool operator() (uInt1 k) { return bm(k); }
  public:
@@ -41,26 +41,26 @@ class CStructGen_$Nm {
   ~CStructGen_$Nm() {}
 
   enum enumCStructGen_$Nm {
-    <<<$ValNm_id ,>>>
+    <<< $ValNm_id ,>>>
     Last_Var_id
   };
-
   char* reStore(char* bf) {
     bf = bm.reStore(bf);
     TBitMapIt<$N> bIt(bm);
-    <<<if(bIt()) bf = $ValNm.reStore(bf);  bIt.nxt();>>>
+    <<<if(bIt()) { bf = $ValNm.reStore(bf);  } bIt.nxt();>>>
     return bf;
   }
   char* store(char* bf) {
     TBitMapIt<$N> bIt(bm);
     bf = bm.store(bf);
-    <<<if(bIt()) bf = $ValNm.store(bf);  bIt.nxt();>>>
+    <<<if(bIt()) { bf = $ValNm.store(bf);  } bIt.nxt();>>>
     return bf;
   }
-  <<<$TypeNm* get_$ValNm()       { return (bm((uInt1)$ValNm_id)) ? (& $ValNm) : NULL; }>>>
-  //<<<void set_$ValNm($TypeNm& v) { $ValNm.set(v); bm.set($ValNm_id); }>>>
-  <<<void  set_$ValNm()          { bm.set($ValNm_id); }>>>
-  <<<void uset_$ValNm()          { bm.uset($ValNm_id); }>>>
+  void set(CStructGen_$Nm& v) {}
+  <<<$TypeNm* get_$ValNm() { return (bm((uInt1) $ValNm_id)) ? (& $ValNm) : NULL; }>>>
+  <<<void set_$ValNm( $TypeNm& v) { $ValNm.set(v); bm.set( $ValNm_id); }>>>
+  <<<void set_$ValNm()     { bm.set( $ValNm_id); }>>>
+  <<<void uset_$ValNm()    { bm.uset( $ValNm_id); }>>>
 
 #ifdef USE_DUMP
   char* fromStr(char* bf) {
@@ -73,7 +73,7 @@ class CStructGen_$Nm {
       while(__me.exe(bf)) {
         if(!__m.exe(bf)) {
           *(__m.end(1))='\0';
-          <<<if(!strcmp(__,$ValNm__,,__m(1))) { bf = $ValNm.fromStr(__m.end(0)); bm.set($ValNm_id); continue; }>>>
+          <<<if(!strcmp(__,$ValNm__,,__m(1))){bf = $ValNm.fromStr(__m.end(0)); bm.set($ValNm_id); continue;}>>>
         } else return NULL;
       }
       return __me.end(0x0);
@@ -123,8 +123,9 @@ class CRecrdGen_$Nm {
     <<<bf = $ValNm.store(bf);>>>
     return bf;
   }
-  <<<$TypeNm* get_$ValNm()       { return & $ValNm; }>>>
-  //<<<void set_$ValNm($TypeNm& v) { $ValNm.set(v); }>>>
+  void set(CRecrdGen_$Nm& v) {}
+  <<<$TypeNm* get_$ValNm() { return & $ValNm; }>>>
+  <<<void set_$ValNm( $TypeNm& v) { $ValNm.set(v); }>>>
 
 #ifdef USE_DUMP
   char* fromStr(char* bf) {
@@ -153,6 +154,89 @@ class CRecrdGen_$Nm {
   char* schema(char* bf,uInt1 of) {
     strcpy(bf, "Rc {\n"); bf+=5; of+=2;
     <<<bf+=::sprintf(bf,"%s$ValNm = ",_prnDmpOffSet);bf=$ValNm.schema(bf,of);strcpy(bf,";\n");bf+=2;>>>
+    of -= 2; strcpy(bf,_prnDmpOffSet); bf += of;
+    strcpy(bf++, "}");
+    return bf;
+  }
+#endif // USE_DUMP
+};);
+
+##############################################################
+
+my $gUnion = q(
+class CUnionGen_$Nm {
+  // disable copy constructor.
+  CUnionGen_$Nm(const CUnionGen_$Nm&);
+  void operator = (const CUnionGen_$Nm&);
+
+ protected:
+  void* pp;
+  CFieldUI1 sw;
+  enum enumCUnionGen_$Nm {
+    <<< $ValNm_id ,>>>
+    Last_Var_id
+  };
+
+ public:
+  CUnionGen_$Nm(): pp(NULL),sw(Last_Var_id) {}
+  CUnionGen_$Nm(char* bf) { reStore(bf); }
+  ~CUnionGen_$Nm() {
+    switch(sw.get()) {
+      <<<case $ValNm_id: delete (($TypeNm *)pp); break;>>>
+    }
+  }
+  char* reStore(char* bf) {
+    bf = sw.reStore(bf);
+    switch(sw.get()) {
+      <<<case $ValNm_id: { $TypeNm *p = new $TypeNm; pp = p; return (*p).reStore(bf); }>>>
+      default: return NULL;  // Error case
+    }
+  }
+  char* store(char* bf) {
+    bf = sw.store(bf);
+    switch(sw.get()) {
+      <<<case $ValNm_id: { return (*(($TypeNm *)pp)).store(bf); }>>>
+      default: return NULL;  // Error case
+    }
+  }
+  void set(CUnionGen_$Nm& v) {}
+  uInt1 getSw() { return sw.get(); }
+  void  setSw(uInt1 x) { sw.set(x); }
+  <<<$TypeNm* get_$ValNm()       { return ($TypeNm *)pp; }>>>
+  <<<void set_$ValNm( $TypeNm& v) { (*(($TypeNm *)pp)).set(v); }>>>
+
+#ifdef USE_DUMP
+  char* fromStr(char* bf) {
+    sw.set(Last_Var_id);
+    CRegExp __mi("^Un \{ ",0x1);
+    if(!__mi.exe(bf)) {
+      CRegExp __me("^}([;,]? |;)",0x1);
+      CRegExp __m("^([^ ]+) = ",0x2);
+      bf = __mi.end(0x0);
+      if(__me.exe(bf) && (!__m.exe(bf))) {
+        *(__m.end(1))='\0';
+        <<<if(!strcmp(__,$ValNm__,,__m(1))){ $TypeNm *p=new $TypeNm;pp=p;sw.set($ValNm_id);bf=(*p).fromStr(__m.end(0));}>>>
+      } else return NULL;
+      {
+        CRegExp __me("^}([;,]? |;)",0x1);
+        if(!__me.exe(bf)) return __me.end(0);
+      }
+    }
+    return NULL;
+  }
+  char* dump(char* bf,uInt1 of) {
+    strcpy(bf, "Un {\n"); bf+=5; of+=2;
+    switch(sw.get()) {
+      <<<case $ValNm_id: { bf+=::sprintf(bf,"%s$ValNm = ",_prnDmpOffSet);bf=(*(($TypeNm *)pp)).dump(bf,of);strcpy(bf,";\n");bf+=2;break; }>>>
+      default: bf+=::sprintf(bf,"ERR: Invalid sw=%u\n",sw.get());  // Error case
+    }
+    of -= 2; strcpy(bf,_prnDmpOffSet); bf += of;
+    strcpy(bf++, "}");
+    return bf;
+  }
+  char* schema(char* bf,uInt1 of) {
+    strcpy(bf, "Un {\n"); bf+=5; of+=2;
+    <<<bf+=::sprintf(bf,"%s$ValNm = ",_prnDmpOffSet);{ $TypeNm v;bf=v.schema(bf,of);}strcpy(bf,";\n");bf+=2;>>>
     of -= 2; strcpy(bf,_prnDmpOffSet); bf += of;
     strcpy(bf++, "}");
     return bf;
@@ -308,6 +392,7 @@ sub notBaseType {
 my %ShMsg;
 my %ShFctr;
 my %ShStruct;
+my %ShUnion;
 my %ShRec;
 
 # Get list of model files - *.tcl
@@ -330,10 +415,10 @@ foreach $mf ( @mdList ) {
 
 	#print "LINE =>$_<=\n";
 	if( ! $pMode ) {
-	    # struct header
+	    # composite type  header
 	    if(m/^_([^ ]+) ([^ ]+) ?{$/) {
-		$pMode = 1;
-		$Strct = $1;
+		$pMode   = 1;
+		$Strct   = $1;
 		$StrctNm = $2;
 		print "  Process - $Strct $StrctNm\n";
 		if($Strct eq "message") {
@@ -344,6 +429,8 @@ foreach $mf ( @mdList ) {
 		    $ShRec{$StrctNm} = ();
 		} elsif($Strct eq "struct") {
 		    $ShStruct{$StrctNm} = ();
+		} elsif($Strct eq "union") {
+		    $ShUnion{$StrctNm} = ();
 		} else {
 		    print "*** ERROR - <$Strct> unknown <$pMode>\n";
 		}
@@ -355,7 +442,7 @@ foreach $mf ( @mdList ) {
 		$type2inc{ $StrctNm } = "$Strct\_$StrctNm";
 		next;
 	    }
-	    # struct body
+	    # composite type body
 	    my ($vType, $vnm) = split(" ", $_, 2);
 	    $xx = notBaseType($vType);
 	    if( $xx ne "" ) {
@@ -375,6 +462,8 @@ foreach $mf ( @mdList ) {
 		push(@{$ShRec{$StrctNm}}, $_);
 	    } elsif($Strct eq "struct") {
 		push(@{$ShStruct{$StrctNm}}, $_);
+	    } elsif($Strct eq "union") {
+		push(@{$ShUnion{$StrctNm}}, $_);
 	    } else {
 		print "*** ERROR - >$Strct< unknown <$pMode>\n";
 	    }
@@ -385,11 +474,6 @@ foreach $mf ( @mdList ) {
 
 ##############################################################
 
-# Process Struct
-$N = 0;
-$StructType = "struct";
-my ($x, $TypeNm, $ValNm) = ("", "", "");
-
 sub tmplResv {
     my ($a, $x) = @_;
     my $z = $x;
@@ -398,13 +482,18 @@ sub tmplResv {
     return "$a$x\n$a<<<$z>>>";
 }
 
+##############################################################
+
+# Process Struct
+$N = 0;
+my ($x, $TypeNm, $ValNm) = ("", "", "");
+$StructType = "struct";
+
 while(($Nm, $x) = each( %ShStruct )) {
     @sBody = @$x;
-    $N     = $#sBody;
+    $N     = $#sBody + 1;
     $text  = $gStruct;
-
-    #$xx = join(" >", @sBody);
-    #print ">> Struct> $Nm >> $xx\n";
+    #$xx = join(" >", @sBody);  print ">> Struct> $Nm-$N >> $xx\n";
 
     foreach $ln ( @sBody ) {
 	($TypeNm, $ValNm) = split(" ", $ln, 2);
@@ -418,6 +507,7 @@ while(($Nm, $x) = each( %ShStruct )) {
 	    $xx = $type2inc{$xx};
 	    $xx =~ s/struct_/CStructGen_/g;
 	    $xx =~ s/record_/CRecrdGen_/g;
+	    $xx =~ s/union_/CUnionGen_/g;
 	    $xx =~ s/message_/CMsgGen_/g;
 	    $xx =~ s/factory_/CFctryGen_/g;
 
@@ -462,16 +552,15 @@ namespace MsgModel {\n";
 ##############################################################
 
 # Process Rec
+$N = 0;
+($x, $TypeNm, $ValNm) = ("", "", "");
 $StructType = "record";
-($N, $x, $TypeNm, $ValNm) = (0, "", "", "");
 
 while(($Nm, $x) = each( %ShRec )) {
     @sBody = @$x;
-    $N     = $#sBody;
+    $N     = $#sBody + 1;
     $text  = $gRecrd;
-
-    #$xx = join(" >", @sBody);
-    #print ">> Record> $Nm-$N >> $xx\n";
+    #$xx = join(" >", @sBody);  print ">> Record> $Nm-$N >> $xx\n";
 
     foreach $ln ( @sBody ) {
 	($TypeNm, $ValNm) = split(" ", $ln, 2);
@@ -485,6 +574,7 @@ while(($Nm, $x) = each( %ShRec )) {
 	    $xx = $type2inc{$xx};
 	    $xx =~ s/struct_/CStructGen_/g;
 	    $xx =~ s/record_/CRecrdGen_/g;
+	    $xx =~ s/union_/CUnionGen_/g;
 	    $xx =~ s/message_/CMsgGen_/g;
 	    $xx =~ s/factory_/CFctryGen_/g;
 
@@ -528,9 +618,85 @@ namespace MsgModel {\n";
 
 ##############################################################
 
+# Process Union
+$N = 0;
+($x, $TypeNm, $ValNm) = ("", "", "");
+$StructType = "union";
+
+sub tmplResv {
+    my ($a, $x) = @_;
+    my $z = $x;
+    $x =~ s/(\$[^ ,_;&<>{}\.\*\(\)\[\]]+)/$1/gee;
+    #print "=tmplResv= <$a> <$z> <$x> <$TypeNm> <$ValNm> \"$a$x\n$a<<<$z>>>\"\n";
+    return "$a$x\n$a<<<$z>>>";
+}
+
+while(($Nm, $x) = each( %ShUnion )) {
+    @sBody = @$x;
+    $N     = $#sBody + 1;
+    $text  = $gUnion;
+    #$xx = join(" >", @sBody);  print ">> Union> $Nm-$N >> $xx\n";
+
+    foreach $ln ( @sBody ) {
+	($TypeNm, $ValNm) = split(" ", $ln, 2);
+	print ">>ln> $TypeNm <> $ValNm\n";
+
+	# Replace $TypeNm with full TypeName
+	$xx = notBaseType($TypeNm);
+	$x = $xx;
+	if( $xx ne "" ) {
+
+	    $xx = $type2inc{$xx};
+	    $xx =~ s/struct_/CStructGen_/g;
+	    $xx =~ s/record_/CRecrdGen_/g;
+	    $xx =~ s/union_/CUnionGen_/g;
+	    $xx =~ s/message_/CMsgGen_/g;
+	    $xx =~ s/factory_/CFctryGen_/g;
+
+	    $TypeNm =~ s/$x/$xx/ge;
+	    print ">>ln> $TypeNm <> $ValNm\n";
+	}
+
+	$text =~ s{([^\n]*)<<<([^>]+)>>>}{tmplResv($1, $2)}gex;
+    }
+    $text =~ s/[^\n]*<<<[^>]*>>>\n//g;
+    $text =~ s/__,/"/g;
+
+    $text =~ s/\$([^ ,_;&<>{}\.\*\(\)\[\]]+)/${$1}/g;
+
+    # Include list
+    $incList = "";
+    $xx = "$StructType\_$Nm";
+    foreach $ln ( @{$IncFileHash{$xx}} ) {
+	#print "\nforeach $ln \( \@{\$IncFileHash{ $xx }} \) {\n";
+	if(exists( $type2inc{$ln} )) {
+	    #print "*** <$type2inc{$ln}.h>\n";
+	    $incList = "$incList\n#include <$type2inc{$ln}.h>";
+	} else {
+	    print "*** ERROR - undef type >> $ln\n";
+	}
+    }
+    #print "***\n$incList\n";
+
+    my $mPref = "#ifndef MSG_PARSER_$StructType\_$Nm\_H
+#define MSG_PARSER_$StructType\_$Nm\_H\n\n#include <msgParser.h>\n$incList\n
+namespace MsgModel {\n";
+    my $mSuff = "\n}  // namespace MsgModel\n
+#endif // MSG_PARSER_$StructType\_$Nm\_H\n\n";
+
+    open(HFF, "> ./gen/$StructType\_$Nm.h")
+    or die "Couldn't open $StructType\_$Nm.h for writing: $!\n";
+
+    print HFF "$mPref\n// Gen-Union - $Nm $N\n$text\n$mSuff";
+    close HFF;
+}
+
+##############################################################
+
 # Process Msg
+$N = 0;
+($x, $TypeNm, $ValNm) = ("", "", "");
 $StructType = "message";
-($N, $x, $TypeNm, $ValNm) = (0, "", "", "");
 
 @MsgGenId_enum = ();
 
@@ -539,8 +705,7 @@ while(($Nm, $x) = each( %ShMsg )) {
     $N     = $#sBody;
     $text  = $gMsg;
 
-    #$xx = join(" >", @sBody);
-    #print ">> Message> $Nm >> $xx\n";
+    #$xx = join(" >", @sBody);  print ">> Message> $Nm >> $xx\n";
 
     $xx = "CMsgGen\_$Nm\_id";
     push(@MsgGenId_enum, $xx);
@@ -556,6 +721,7 @@ while(($Nm, $x) = each( %ShMsg )) {
 
 	    $xx = $type2inc{$xx};
 	    $xx =~ s/struct_/CStructGen_/g;
+	    $xx =~ s/union_/CUnionGen_/g;
 	    $xx =~ s/record_/CRecrdGen_/g;
 	    $xx =~ s/message_/CMsgGen_/g;
 	    $xx =~ s/factory_/CFctryGen_/g;
@@ -603,16 +769,16 @@ namespace MsgModel {\n";
 ##############################################################
 
 # Process Factry
+$N = 0;
+($x, $TypeNm, $ValNm) = ("", "", "");
 $StructType = "factory";
-($N, $x, $TypeNm, $ValNm) = (0, "", "", "");
 
 while(($FN, $x) = each( %ShFctr )) {
     @sBody = @$x;
     $N     = $#sBody;
     $text  = $gFctry;
 
-    #$xx = join(" >", @sBody);
-    #print ">> Factory> $FN >> $xx\n";
+    #$xx = join(" >", @sBody);  print ">> Factory> $FN >> $xx\n";
 
     foreach $Nm ( @sBody ) {
 	#print ">> $Nm\n";
@@ -667,9 +833,4 @@ open(HFF, "> ./gen/ModelConst.h")
 print HFF "$mPref\n// Gen-Struct - MdlGlobConst\n$text\n$mSuff";
 close HFF;
 
-#####################
-### ToLua binding ###
-#####################
-#
-
-# $Id: modelGen.pl 350 2010-02-08 18:38:31Z asus $
+# $Id: modelGen.pl 369 2010-04-20 20:36:59Z asus $

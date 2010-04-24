@@ -203,6 +203,17 @@ CEvent* CTstSgThX::getEvent() {
 
 //=================================================
 
+CTstFsmTh::CTstFsmTh(int m)
+  : CEvThrd(5000/m),nMsg(1000000000/m)
+{
+  tName = "tstFsmTh";
+  for(short k=0; k<FSM_ARR_SIZE; ++k) {
+    fsmCtxtAr[k].state = 0u;
+    fsmCtxtAr[k].CId   = 0u;
+    fsmCtxtAr[k].time  = 0u;
+  }
+}
+
 CEvent* CTstFsmTh::getEvent() {
   static struct timespec req;
   int kk = RRand() % FSM_ARR_SIZE;
@@ -253,4 +264,4 @@ CEvent* CTstFsmTh::getEvent() {
   }
 }
 
-// $Id: tstSigThrd.cpp 315 2010-01-14 14:30:45Z asus $
+// $Id: tstSigThrd.cpp 360 2010-03-27 13:25:05Z asus $

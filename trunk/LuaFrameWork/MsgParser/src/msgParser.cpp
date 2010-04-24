@@ -75,8 +75,7 @@ CRegExp::~CRegExp() {
 }
 
 int CRegExp::exe(char* s) {
-  int rr = regexec(&re, s, (size_t)ss, pmatch,0);
-  str = s;
+  int rr = regexec(&re, s, (size_t)ss, pmatch,0); str = s;
   //if(rr) printf("**** NOT matched <<<%s>>>\n",s);
   return rr;
 }
@@ -86,9 +85,7 @@ char* CRegExp::operator () (uInt1 x, uInt2* o) {
   return (pmatch[x].rm_so != -1) ? str + pmatch[x].rm_so : NULL;
 }
 
-char* CRegExp::end(uInt1 x) {
-  return str + pmatch[x].rm_eo;
-}
+/////////////////////////////////////////
 
 void a2i(uInt1& v, char* p)  { v = (uInt1)atoi(p); }
 void a2i(uInt2& v, char* p)  { v = (uInt2)atoi(p); }
@@ -108,8 +105,21 @@ char* setDefOffset_(uInt1 of) {
   (char*)memset(tmp_,' ',of); tmp_[of] = '\0';
   return tmp_;
 }
+
+// ===================================
+
+char* i2a(uInt4 val, int base) {
+  static char buf[48] = {0};
+  int i;
+  for(i = 46; val && i; --i, val /= base)
+    buf[i] = "0123456789abcdef"[val % base];
+  return &buf[i+1];
+}
+
+// ===================================
+
 #endif // USE_DUMP
 
 } // namespace MsgModel
 
-// $Id: msgParser.cpp 342 2010-01-25 17:28:36Z asus $
+// $Id: msgParser.cpp 371 2010-04-24 11:51:16Z asus $

@@ -66,6 +66,8 @@ uInt8  h2n(uInt8  v);
 
 #include <pcreposix.h>
 
+//===========================================================
+
 class CRegExp {
   // disable copy constructor.
   CRegExp(const CRegExp&);
@@ -82,9 +84,11 @@ class CRegExp {
 
   int   exe(char* s);
   char* operator () (uInt1 x, uInt2* o=NULL);
-  char* end(uInt1 x);
+  char*       end(uInt1 x)   { return str + pmatch[x].rm_eo; }
   regmatch_t& match(uInt1 k) { return pmatch[k]; }
 };
+
+//===========================================================
 
 static const char* hhx = "0123456789ABCDEF";
 extern char* setDefOffset_(uInt1 n);
@@ -121,9 +125,10 @@ template<typename T> class TIField {
   TIField(char*& buff) { buff = reStore(buff); }
   ~TIField() {}
 
-  T get() const          { return var; }
-  T operator () () const { return var; }
-  void set(T& v) { var = v; }
+  T get() const           { return var; }
+  T operator () () const  { return var; }
+  void set(T v)           { var = v; }
+  void set(TIField<T>& v) { set(v.get()); }
 
   char* reStore(char* buff) {
     T tmp;
@@ -184,9 +189,10 @@ template<typename T> class TFField {
   TFField(char*& buff) { buff = reStore(buff); }
   ~TFField() {}
 
-  T get() const          { return var; }
-  T operator () () const { return var; }
-  void set(T& v) { var = v; }
+  T get() const           { return var; }
+  T operator () () const  { return var; }
+  void set(T v)           { var = v; }
+  void set(TFField<T>& v) { set(v.get()); }
 
   char* reStore(char* buff) {
     T tmp;
@@ -220,8 +226,8 @@ template<typename T> class TFField {
   }
 #endif // USE_DUMP
 };
-typedef TFField<Float4> CFieldFI4;
-typedef TFField<Float8> CFieldFI8;
+typedef TFField<Float4> CFieldF4;
+typedef TFField<Float8> CFieldF8;
 
 //===========================================================
 
@@ -239,9 +245,9 @@ class CString {
   ~CString() { if(str) free(str); }
 
   char* get() const          { return str; }
-  char* operator () () const { return str; }
-  // it takes memory owners chip
-  void set(char* v) { str = v; }
+  char* operator () () const { return get(); }
+  void set(char* v)    { str = v; }   // it takes memory ownership
+  void set(CString& v) { set(v.get()); }
 
   char* reStore(char* buff) {
     CFieldUI2 ui(buff);
@@ -301,15 +307,23 @@ template<uInt2 Kn> class TFString {
   TFString(char*& buff)  { buff = reStore(buff); }
   ~TFString() {}
 
-  char* get() const          { return str; }
-  char* operator () () const { return str; }
+  const char* get() const { return &str[0]; }
+  const char* operator () () const { return get(); }
   uInt2 len() const { return Kn; }
   void set(char* s) {
     if(s) {
-      memcpy(str, s, Kn);
+      strncpy(str, s, Kn-1);
+      str[Kn-1] = '\0';
     } else
       str[0] = '\0';  // To avoid error
   }
+  void set(char* s, uInt2 l) {
+    if(s) {
+      memcpy(str, s, (l<Kn) ? l : Kn);
+    } else
+      str[0] = '\0';  // To avoid error
+  }
+  void set(TFString& v) { set((char*)v.get()); }
 
   char* reStore(char* buff) {
     memcpy(str, buff, Kn);
@@ -413,6 +427,8 @@ template<sInt2 Kn> class TBitMap {
     i1      = (0x01 << i1);
     bm[i0] |=  i1;
   }
+  // Dummy
+  void set(TBitMap<Kn>&) {}
   void uset(uInt2 i) {
     uInt1 i0 = i/8;
     uInt1 i1 = i%8;
@@ -506,10 +522,11 @@ template<typename T,uInt2 Kn> class TArray {
   TArray(char*& bf) { bf = reStore(bf); }
   ~TArray() {}
 
-  T&    get(uInt2 k)      { return      ar[k]; }
-  bool bGet(uInt2 k)      { return      bm.get(k); }
-  void  set(uInt2 k,T& v) { ar[k] = v;  bm.set(k); }
-  void uset(uInt2 k)      { bm.uset(k); }
+  T&    get(uInt2 k)       { return      ar[k]; }
+  bool bGet(uInt2 k)       { return      bm.get(k); }
+  void  set(uInt2 k,T& v)  { ar[k] = v;  bm.set(k); }
+  void  set(TArray<T,Kn>&) {}  // Dummy
+  void uset(uInt2 k)       { bm.uset(k); }
 
   char* reStore(char* bf) {
     bf = bm.reStore(bf);
@@ -605,6 +622,8 @@ template<typename T,uInt2 Kn> class TFVector {
   ~TFVector() {}
 
   T & get(uInt2 k) { return vctr[k]; }
+  // Dummy
+  void  set(TFVector<T,Kn>&) {}
 
   char* reStore(char* bf) {
     for(uInt2 k = 0u; k<Kn; ++k)
@@ -679,6 +698,8 @@ template<typename T> class TVector {
     delete [] pT;
     pT = new T[s];
   }
+  // Dummy
+  void  set(TVector<T>&) {}
   T&   get(uInt2 k) { return pT[k]; }
 
   char* reStore(char* bf) {
@@ -810,4 +831,4 @@ typedef CMessage* PMessage;
 
 #endif // MSG_PARSER_H
 
-// $Id: msgParser.h 348 2010-01-29 21:45:52Z asus $
+// $Id: msgParser.h 371 2010-04-24 11:51:16Z asus $

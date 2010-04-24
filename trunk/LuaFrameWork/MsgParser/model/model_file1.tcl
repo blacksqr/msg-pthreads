@@ -1,4 +1,4 @@
-# $Id: model_file1.tcl 342 2010-01-25 17:28:36Z asus $
+# $Id: model_file1.tcl 370 2010-04-24 10:13:26Z asus $
 # Model def. file
 #
 
@@ -17,10 +17,15 @@ _record tst2 {
 
 # Comment
 _struct tst1 {  # Comment test
-    TVector<CFieldFI4>     fT03
+    TVector<CFieldF4>     fT03
     TFVector<CFieldSI4,3>  iT03
     CFieldSI2           ii
     TBitMap<12>         bmTst02
+}
+
+_union tstun {
+    TArray<CFieldF4,4> arI4_4
+    hdr1                hh1
 }
 
 _record hdr1 {
@@ -30,11 +35,12 @@ _record hdr1 {
 }
 
 # Comment
-_record tst3 {
+_struct tst3 {
     TArray<tst1,8>  myt
     TArray<CFieldSI4,8> iTst03
     CFieldUI4       nn
     CFieldUI2       m
+    tstun           un0
     TFString<16>    sf06
 }
 

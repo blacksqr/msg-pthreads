@@ -40,9 +40,9 @@ CContext::CContext(uInt i):
   pQqRoot(NULL),pQqLast(NULL),
   cId(i),ctxtType(0x0),rfCount(0x01)
 {
-  lock();
   seq0 = seq1 = '\0';
   DBG("Context::CContext %u Tot-%u\n",cId,(uInt)hashCntxt.size());
+  lock();
 }
 
 void CContext::hashCId() {
@@ -259,4 +259,4 @@ uShort CHKContext::onTimer(uLong tNn,pCEvent pe, CWThread* pwt) {
   return 0u;
 }
 
-// $Id: Context.cpp 316 2010-01-14 22:48:51Z asus $
+// $Id: Context.cpp 360 2010-03-27 13:25:05Z asus $
