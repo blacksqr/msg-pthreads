@@ -12,7 +12,7 @@
  */
 #include <EvObj.h>
 #include <Global.h>
-#include <Thread.h>
+#include <WThread.h>
 #include <getTime.h>
 #include <dprint.h>
 
@@ -45,7 +45,7 @@ void CEvent::delEv(pCEvent pt) {
 extern uChar WThreadRun();
 
 void CEvent::sign() {
-  if(GlEvFifo.qSize() < (WThreadRun()/2))
+  if(CWThread::nWaitingTh())
     GlEvFifo.signal();
 }
 
@@ -108,9 +108,10 @@ _FFInd CFifo::addTopEl(pCEvent p) {
 pCEvent CFifo::getEl() {
   while(end == beg)
     rCnd.wait();
+  DBG("CFifo::getEl> %u<>%u\n",beg,end);
   if(!gFlg && (nFf < gr1))
     gFlg = 'x';
   return pObj[beg++];
 }
 
-// $Id: EvObj.cpp 358 2010-03-14 18:51:56Z asus $
+// $Id: EvObj.cpp 387 2010-05-15 21:02:11Z asus $

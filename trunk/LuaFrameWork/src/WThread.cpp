@@ -25,10 +25,12 @@
 #include <cashCtxt.h>
 #include <tstCntxt.h>
 
-char  CWThread::eFlag        = '\0';
-uChar CWThread::nRun         = '\0';  // global number of running threads
-uChar CWThread::nReload      = '\0';  // global number of threads, reloaded Tcl-script
-uChar CWThread::nWaiting     = '\0';  // global number of threads, waiting new event
+char  CWThread::eFlag   = '\0';
+uChar CWThread::nRun    = '\0';  // global number of running threads
+uChar CWThread::nReload = '\0';  // global number of threads, reloaded Tcl-script
+
+// global number of threads, waiting new event
+volatile uChar CWThread::nWaiting = '\0';
 
 extern CHKContext* pHKContext;
 
@@ -113,8 +115,15 @@ CContext* CWThread::genNewCtx(pCEvent pe) {
   case Evnt_newFsm:
     DBG("CWThread::genNewCtx %u> FsmCtxt\n",(uInt)pe->getCId());
     return CFsmCtxt::newFsm(pe->getCId());
+  case Evnt_TstCntxt:
+    DBG("CWThread::genNewCtx %u> TstCntxt\n",(uInt)pe->getCId());
+    return CSipCntx::newSCtxt(pe->getCId());
+    //return CTstCntx::newTCtxt(pe->getCId());
+  case Evnt_sipCtxt1:
+  case Evnt_sipCtxt2:
+    DBG("CWThread::genNewCtx %u> sipCtxt\n",(uInt)pe->getCId());
+    return CSipCntx::newSCtxt(pe->getCId());
   default:
-    //if(Evnt_TstCntxt == pe->getEv()) {
     if(!iCsCtxt) {
       iCsCtxt = CContext::reservId();
       iDbCtxt = CContext::reservId();
@@ -139,7 +148,7 @@ uShort CWThread::getEvent() {
   // Internal get event loop, entry point from script
   DBG("CWThread::getEvent> start from Lua\n");
 
-  // Process all events from Context queue
+  // Process events from central apps queue
   for(;;) {
     // clean last event
     if(pe) {
@@ -147,40 +156,44 @@ uShort CWThread::getEvent() {
       evType = 0x0;
       pe = NULL;
     }
-
-    if(pCont) {
-      // Process context's event queue
+    while(pCont) {
+      // Process all events from Context queue
       {
 	CSglLock sl(pCont->getQm());
-	pe = pCont->GetEv();
+	pe = pCont->enQueue();
       }
-      if(pe) {
+      DBG("CWThread::getEvent> Ev-0x%X from Context queue cId-%u\n",
+          (pe ? pe->getEv() : 0),pCont->getId());
+      evType = pe ? pe->getEv() : 0x0;
+      if(evType && (evType != Evnt_DelCtxt)) {
 	uShort xRet = 0u;
-	if(evType > TOut_Shift) {
-	  // Timer event
-	  pe->stripTm();
-	  wState |= PROC_TM;
-	  if((HkCId != pe->getCId()) && !pCont->isTimerOn(evType - TOut_Shift)) {
-	    DBG("CWThread::getEvent> %u timer not active Type=0x%X thId=%u\n",
-		pCont->cId,evType-TOut_Shift,pe->sigThId());
-	    continue;     // timer disabled in context
-	  }
-	  msgTm = tNow();
-	  xRet = pCont->onTimer(msgTm,pe,this);
-	} else {
-	  wState |= PROC_EV;
-	  xRet =  Run(pe);
-	}
-	DBG("CWThread::getEvent===> %u %s\n", pCont->cId, (xRet ? "GoScript" : "NewEvent"));
-	if(xRet) {
-	  return xRet;  // return in Lua
-	} else
-	  continue;
+        if(evType > TOut_Shift) {
+          // Timer event
+          pe->stripTm();
+          wState |= PROC_TM;
+          if((HkCId != pe->getCId()) && !pCont->isTimerOn(evType - TOut_Shift)) {
+            DBG("CWThread::getEvent> %u timer not active Type=0x%X thId=%u\n",
+                pCont->cId,evType-TOut_Shift,pe->sigThId());
+            continue;     // timer disabled in context
+          }
+          msgTm = tNow();
+          xRet = pCont->onTimer(msgTm,pe,this);
+        } else {
+          wState |= PROC_EV;
+          xRet =  Run(pe);
+        }
+        DBG("CWThread::getEvent===> %u %s\n", pCont->cId, (xRet ? "GoScript" : "NewEvent"));
+        if(xRet) {
+          return xRet;  // return in Lua
+        } else
+          continue;
+      } else {
+        // release last Context lock
+        DBG("CWThread::getEvent> pCont->remRef() Seq %d< %d >%d\n",
+            pCont->cId,pCont->seq0,seq,pCont->seq1);
+        pCont->remRef();
+        pCont = NULL;
       }
-      // release last Context lock
-      DBG("_LOCK %u unlock Seq %d< %d >%d\n",pCont->cId,pCont->seq0,seq,pCont->seq1);
-      pCont->remRef();
-      pCont = NULL;
     }
 
     // Get new Event from central apps queue
@@ -192,7 +205,7 @@ uShort CWThread::getEvent() {
       pe = (pCEvent)GlEvFifo.getEl();
       --nWaiting;
       evType = pe->getEv();
-      DBG("CWThread::getEvent %u> Event Ctxt-%u Type=0x%X sigTn=%u\n",
+      DBG("CWThread::getEvent %u> Event cId-%u evType=0x%X sigTn=%u\n",
 	  wtId,pe->getCId(),evType,pe->sigThId());
       if((evType == Evnt_wThrdEnd) && !pe->getCId()) {
 	CEvent::delEv(pe);
@@ -200,40 +213,44 @@ uShort CWThread::getEvent() {
 	return 0x0;  // reload wrk-script
       }
       if(evType == Evnt_DelCtxt) {
-	// Event to delete context
+	// Event to remove context (delete)
 	pCont = (CContext*)(pe->getCId());
-	continue;    // Wait new event
-      }
-      if(HkCId != pe->getCId()) {
-	// Not hauseKeep
-	if(pe->newCtx()) {
-	  // Event to create new context
-	  LOG(L_INFO,"CWThread::getEvent> NEW Context cId=%u\n",pe->getCId());
-	  goto gNewCtx;
-	}
-	pCont = hashCntxt.get(pe->getCId());
-      } else
-	pCont = pHKContext; // HausKeep
-      if(pCont && pCont->rfCount && (evType != Evnt_PreDelCtxt)) {
-	pCont->addRef();     // to prevent context destruction
-	seq = pCont->seq0++; // save msg-get seq. & inc. it
-	DBG("_LOCK %u set Seq %d< %d >%d\n",pCont->cId,pCont->seq0,seq,pCont->seq1);
+        DBG("CWThread::getEvent> remove context cId-%u\n",pCont->getId());
       } else {
-	LOG(L_WARN,"CWThread::getEvent> No Context cId=%u\n",pe->getCId());
-	pCont = NULL;
-	continue; // no Context found - wait new event
-      }
-    }  // msg.queue unlocked
+        if(HkCId != pe->getCId()) {
+          // Not hauseKeep
+          if(pe->newCtx()) {
+            // Event to create new context
+            LOG(L_INFO,"CWThread::getEvent> NEW Context cId=%u\n",pe->getCId());
+            goto gNewCtx;
+          }
+          pCont = hashCntxt.get(pe->getCId());
+        } else
+          pCont = pHKContext; // HausKeep
 
+        if(pCont && pCont->rfCount && (evType != Evnt_PreDelCtxt)) {
+          pCont->addRef();     // to prevent context destruction
+          seq = pCont->seq0++; // save msg-get seq. & inc. it
+          DBG("CWThread::getEvent>_LOCK %u set Seq %d< %d >%d\n",
+              pCont->cId,pCont->seq0,seq,pCont->seq1);
+        } else {
+          LOG(L_WARN,"CWThread::getEvent> No Context cId=%u\n",pe->getCId());
+          pCont = NULL;
+          continue; // no Context found - wait new event
+        }
+      }
+    }
+    // msg.queue unlocked
     msgTm = tNow();
     if(pe->sigThId() && (evType < TOut_Shift)) {
       // Msg from sigThread - hausKeeping event
       newSigThEv( msgTm,pe->sigThId() - 1 );
     }
-
     if( ! pCont->lTry() ) {
-      // === Context locked - Run it ===
+      // === Context locked - Run it (context's queue is empty) ===
       uShort xRet = 0u;
+      DBG("CWThread::getEvent> cId-%u locked Ev-0x%X\n",pCont->getId(),evType);
+      if(evType == Evnt_DelCtxt) continue;
       if(evType > TOut_Shift) {
 	// Timer event
 	pe->stripTm();
@@ -301,11 +318,20 @@ static int getWLObj(lua_State* pl) {
   return 1;
 }
 
+extern "C" {
+  int luaopen_socket_core(lua_State *L);
+  int luaopen_lsqlite3(lua_State *L);
+}
+
 void* CWThread::go() {
   // Work interpreter
   int  tolua_tWrkLua_open(lua_State*);
   CWrkLua WLua(lua_open(),this);
   luaL_openlibs(&WLua);
+
+  luaopen_socket_core(&WLua);
+  luaopen_lsqlite3(&WLua);
+
   tolua_tWrkLua_open(&WLua);
 
   lua_pushcfunction(&WLua, getWLObj);
@@ -351,4 +377,4 @@ uChar WThreadRun() {
   return CWThread::nRThrd();
 }
 
-// $Id: WThread.cpp 358 2010-03-14 18:51:56Z asus $
+// $Id: WThread.cpp 388 2010-05-15 21:27:40Z asus $

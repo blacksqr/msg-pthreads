@@ -22,16 +22,25 @@ CPMutex CContext::cGlIdm;
 uInt HkCId;
 
 // Global context map
-CCnxtMap hashCntxt;
+CCtxtMap hashCntxt;
 
 // Flag to stop new context
 char stopNewCtxt ='\0';
 
 // Called from context destructor
-void CCnxtMap::del(const uInt n) {
+void CCtxtMap::del(const uInt n) {
   CSglLock sl(m);
   DBG("CCtxtMap.erase[%d] %u\n",n,(uInt)size());
   erase(n);
+}
+
+// ==================================================== 
+
+// CCtxtQq pool
+static CMPool CCtxtQq_mem(sizeof(CCtxtQq));
+
+CCtxtQq* CCtxtQq::newCtxtQq(pCEvent p) {
+  return new (CCtxtQq_mem.pAlloc()) CCtxtQq(p);
 }
 
 // ==================================================== 
@@ -56,30 +65,20 @@ CContext::~CContext() {
   DBG("Context::~CContext cId=%u\n",cId);
 }
 
-void CContext::delHook() {
-  delete this;
-}
-
-void CContext::QTop(pCEvent pe) {
-  CCtxtQq* pq = new CCtxtQq(pe);
-  if(!pQqLast) {
-    pQqRoot = pQqLast = pq;
-  } else
-    pQqRoot = pQqRoot->gNxt() = pq;
-}
+void CContext::delCtxt() { delete this; }
 
 void CContext::Queue(pCEvent pe) {
-  CCtxtQq* pq = new CCtxtQq(pe);
   if(!pQqLast) {
-    pQqRoot = pQqLast = pq;
+    pQqRoot = pQqLast = CCtxtQq::newCtxtQq(pe);
   } else
-    pQqLast = pQqLast->gNxt() = pq;
+    pQqLast = pQqLast->set(pe);
 }
 
-pCEvent CContext:: GetEv() {
+pCEvent CContext:: enQueue() {
   if(pQqRoot) {
-    pCEvent p = pQqRoot->get();
-    pQqRoot = pQqRoot->gNxt();
+    pCEvent p = NULL;
+    pQqRoot = pQqRoot->get(p);
+    pQqLast = (pQqRoot) ? pQqLast : NULL;
     return p;
   } else
     return NULL;
@@ -128,18 +127,21 @@ uChar CContext::isTimerOn(uChar type) {
   return (timerFlags[a] & _tmFlg_[b]);
 }
 
-void CContext::remRef() {
+CContext* CContext::remRef() {
+  DBG("Context::Ref rem> cId=%u nRef=%d\n",cId,rfCount);
   --rfCount;
   if(!rfCount) {
     DBG("Context-%u remRef Seq %u<>%u\n",cId,seq0,seq1);
-    lock();
-    delHook();
-  } else if(rfCount > 0) {
+    delCtxt();
+    return NULL;
+  }
+  if(rfCount > 0) {
     remRefHook();
     unlock();
   } else
     LOG(L_ERR,"Context::remRef Error %u Seq %u<>%u Ref=%d\n",
 	cId,seq0,seq1,rfCount);
+  return this;
 }
 
 void CContext::destruct() {
@@ -259,4 +261,4 @@ uShort CHKContext::onTimer(uLong tNn,pCEvent pe, CWThread* pwt) {
   return 0u;
 }
 
-// $Id: Context.cpp 360 2010-03-27 13:25:05Z asus $
+// $Id: Context.cpp 387 2010-05-15 21:02:11Z asus $

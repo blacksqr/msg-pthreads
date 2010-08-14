@@ -23,12 +23,12 @@ class CContext;
 
 // ===============================================
 
-class CCnxtMap:
+class CCtxtMap:
 public __gnu_cxx::hash_map < uInt,CContext*,__gnu_cxx::hash<uInt>,eqUInt >
 {
   // disable copy constructor.
-  CCnxtMap(const CCnxtMap&);
-  void operator = (const CCnxtMap&);
+  CCtxtMap(const CCtxtMap&);
+  void operator = (const CCtxtMap&);
 
   friend class CContext;
 
@@ -39,8 +39,8 @@ public __gnu_cxx::hash_map < uInt,CContext*,__gnu_cxx::hash<uInt>,eqUInt >
     return (i==end()) ? NULL : (i->second);
   }
  public:
-  CCnxtMap() {}
-  virtual ~CCnxtMap() { DBG("CCnxtMap::~CCnxtMap %u\n",(uInt)size()); }
+  CCtxtMap() {}
+  virtual ~CCtxtMap() { DBG("CCtxtMap::~CCtxtMap %u\n",(uInt)size()); }
   CPMutex& getM() { return m; }
   CContext* get(const uInt n) {
     CSglLock sl(m);
@@ -51,11 +51,13 @@ public __gnu_cxx::hash_map < uInt,CContext*,__gnu_cxx::hash<uInt>,eqUInt >
   void del(const uInt n);
 };
 // call-context hash
-extern CCnxtMap hashCntxt;
+extern CCtxtMap hashCntxt;
 // timer event hash
 //CUIntMap hashTimer;
 
 // ===============================================
+
+#define CTXTQSIZE 8
 
 class CCtxtQq {
   // disable copy constructor.
@@ -64,13 +66,25 @@ class CCtxtQq {
 
  protected:
   CCtxtQq* nxt;
-  pCEvent pe;
- public:
-  CCtxtQq(pCEvent p) : nxt(NULL), pe(p) {}
-  ~CCtxtQq() {}
+  pCEvent  pe[CTXTQSIZE];
+  uChar    nEvents;
 
-  CCtxtQq*& gNxt() { return nxt; }
-  pCEvent get() { return pe; }
+  CCtxtQq(pCEvent p) : nxt(NULL), nEvents(0x0) {}
+  ~CCtxtQq() {}
+ public:
+  static CCtxtQq* newCtxtQq(pCEvent p);
+
+  CCtxtQq* get(pCEvent& p) {
+    p = pe[nEvents];
+    return (nEvents--) ? this : nxt;
+  }
+  CCtxtQq* set(pCEvent p) {
+    if(nEvents == CTXTQSIZE) {
+      return newCtxtQq(p);
+    }
+    pe[++nEvents] = p;
+    return this;
+  }
 };
 
 // ===============================================
@@ -90,8 +104,7 @@ class CContext {
   CPMutex wMut;
   CPMutex qMut;
 
-  CCtxtQq* pQqRoot;
-  CCtxtQq* pQqLast;
+  CCtxtQq *pQqRoot, *pQqLast;
 
  protected:
   uInt cId;       // current Context ID
@@ -100,11 +113,11 @@ class CContext {
   char  rfCount; // Reff. count
 
   CContext(uInt i);
+  virtual void delCtxt();
   // It's possible to place Cntxt-obj in memPoll
   // Destructor must be NOT virtual and ONLY in last derived class
   virtual ~CContext();
 
-  virtual void delHook();
   // Hook after Lua-Script
   virtual void remRefHook();
 
@@ -117,8 +130,11 @@ class CContext {
   void setTimer(uLong tm,uShort type,uShort f=0u);
  public:
   void hashCId();
-  void addRef() { ++rfCount; }
-  void remRef();
+  void addRef() {
+    DBG("Context::Ref add> cId=%u nRef=%d\n",cId,rfCount);
+    ++rfCount;
+  }
+  CContext* remRef();
   uChar getCtxtType() { return ctxtType; }
   void destruct(); // free to delete
   void Halt();     // Remove context
@@ -128,21 +144,20 @@ class CContext {
 
   // wMut - Interface
   int lTry()   {
-    DBG("Context::lTry> cId=%u Seq %u<>%u\n",cId,seq0,seq1);
+    DBG("Context::locktr> cId=%u Seq %u<>%u\n",cId,seq0,seq1);
     return wMut.ltry();
   }
   void lock()   {
-    DBG("Context::lock> cId=%u Seq %u<>%u\n",cId,seq0,seq1);
+    DBG("Context::lock+> cId=%u Seq %u<>%u\n",cId,seq0,seq1);
     (void)wMut.lock();
   }
   void unlock() {
-    DBG("Context::unlock> cId=%u Seq %u<>%u\n",cId,seq0,seq1);
+    DBG("Context::lock-> cId=%u Seq %u<>%u\n",cId,seq0,seq1);
     (void)wMut.unlock();
   }
 
-  void QTop(pCEvent pe);
   void Queue(pCEvent pe);
-  pCEvent GetEv();
+  pCEvent enQueue();
   CPMutex& getQm() { return qMut; }
   void qLock() { qMut.lock(); }
   void qUnlock() { qMut.unlock(); }
@@ -197,4 +212,4 @@ extern char stopNewCtxt;
 
 #endif // CCONTEXT_H
 
-// $Id: Context.h 308 2010-01-13 17:36:43Z asus $
+// $Id: Context.h 387 2010-05-15 21:02:11Z asus $

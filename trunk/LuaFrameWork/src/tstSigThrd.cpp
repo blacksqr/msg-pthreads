@@ -136,76 +136,10 @@ CEvent* CTstSgTh::getEvent() {
 
 //=================================================
 
-CTstSgThX::CTstSgThX(uShort m0,uShort m1):
-  CEvThrd(5000/m0),nMsg0(2*m0),nMsg1(2*m1),tm0(7),tm1(2)
-{
-  tName = "tstSgThrd_2";
-  nSend = 0u;
-  DtTm = 10 * tm0;
-  nMsg = nMsg0;
-  ll = jj = ff = kk = 0x0;
-}
-
-CEvent* CTstSgThX::getEvent() {
-  CEvent* ppe = NULL;
-  if(ff < 5) {
-    ll = jj = 0;
-    sTm = tNow();
-    // Get new context-id
-    CId[ff] = CContext::reservId();
-    DBG("CTstSgThX::getEvent %u> %d Evnt_TstCntxt CId=%u\n",sigThId,ff,CId[ff]);
-    ppe = CEvent::newEv(CId[ff],Evnt_TstCntxt,0u,sigThId,'x');
-    ++ff;
-    return ppe;
-  }
-  if(jj < 11) {
-    ++jj;
-    int x = tNow() - sTm;
-    if(x > DtTm) {
-      LOG(L_ERR,"CTstSgThX::getEvent %u in Delta=%u send %u msg %u<>%u\n",
-	  sigThId,x,nSend,(100*(int)nSend)/x,nMsg/2);
-      sTm += DtTm;
-      x -= DtTm;
-      nSend = 0u;
-      DtTm = 10 * ((DtTm == (10 * tm0)) ? tm1 : tm0);
-      nMsg = (nMsg == nMsg0) ? nMsg1 : nMsg0;
-    }
-    int timeOut = ((2000 * nSend++) / nMsg) - (10 * x);
-    if(timeOut > 4) {
-      struct timespec req;
-      req.tv_sec  = timeOut / 1000;
-      // 1000000000
-      req.tv_nsec = MicroSec * (timeOut % 1000);
-      (void)nanosleep(&req, NULL);
-    }
-    kk = (kk > 4) ? 0 : kk;
-    //DBG("CTstSgThX::getEvent %u> %d Evnt_TstSeqw CId=%u nSend=%u\n",sigThId,kk,CId[kk],nSend);
-    ppe = CEvent::newEv(CId[kk++],Evnt_TstSeqw,0u,sigThId);
-    ++nSend;
-    return ppe;
-  }
-  if(ll < 5) {
-    ++ll;
-    sTm = tNow();
-    DBG("CTstSgThX::getEvent %u> %d Evnt_DelCtxt CId=%u\n",sigThId,ll,CId[ll]);
-    ppe = CEvent::newEv(CId[ll],Evnt_DelCtxt,0u,sigThId);
-    return ppe;
-  }
-  // tmOut to produce ev.thread-alarm
-  struct timespec req;
-  req.tv_sec  = 2 + ((11 * (int)kpAlive) / 100);
-  req.tv_nsec = 0;
-  (void)nanosleep(&req, NULL);
-  DBG("CTstSgThX::getEvent %u>\n",sigThId);
-  ff = 0;
-  return NULL;
-}
-
-//=================================================
-
 CTstFsmTh::CTstFsmTh(int m)
   : CEvThrd(5000/m),nMsg(1000000000/m)
 {
+  DBG("CTstFsmTh::CTstFsmTh %d\n",m);
   tName = "tstFsmTh";
   for(short k=0; k<FSM_ARR_SIZE; ++k) {
     fsmCtxtAr[k].state = 0u;
@@ -221,47 +155,168 @@ CEvent* CTstFsmTh::getEvent() {
   req.tv_nsec = nMsg;
   (void)nanosleep(&req, NULL);
   switch(fsmCtxtAr[kk].state) {
-  case Evnt_fsmEv1: {
-    DBG("CTstFsmTh::getEvent Evnt_fsmEv1 CId=%u\n",fsmCtxtAr[kk].CId);
-    fsmCtxtAr[kk].state = Evnt_fsmEv2;
-    fsmCtxtAr[kk].time  = tNow();
-    return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv2,0u,sigThId);
-  }
-  case Evnt_fsmEv2: {
-    DBG("CTstFsmTh::getEvent Evnt_fsmEv2 CId=%u\n",fsmCtxtAr[kk].CId);
-    fsmCtxtAr[kk].state = Evnt_fsmEv3;
-    fsmCtxtAr[kk].time  = tNow();
-    return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv3,0u,sigThId);
-  }
-  case Evnt_fsmEv3: {
-    DBG("CTstFsmTh::getEvent Evnt_fsmEv3 CId=%u\n",fsmCtxtAr[kk].CId);
-    fsmCtxtAr[kk].state = Evnt_fsmEv4;
-    fsmCtxtAr[kk].time  = tNow();
-    return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv4,0u,sigThId);
-  }
-  case Evnt_fsmEv4: {
-    DBG("CTstFsmTh::getEvent Evnt_fsmEv4 CId=%u\n",fsmCtxtAr[kk].CId);
-    fsmCtxtAr[kk].state = Evnt_fsmEv5;
-    fsmCtxtAr[kk].time  = tNow();
-    return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv5,0u,sigThId);
-  }
-  case Evnt_fsmEv5: {
-    DBG("CTstFsmTh::getEvent Evnt_fsmEv5 CId=%u\n",fsmCtxtAr[kk].CId);
-    fsmCtxtAr[kk].state = Evnt_fsmEv6;
-    fsmCtxtAr[kk].time  = tNow();
-    return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv6,0u,sigThId);
-  }
-  case Evnt_newFsm:
-  case Evnt_fsmEv6:
-  default: { // new context-id
-    uInt id = CContext::reservId();
-    DBG("CTstFsmTh::getEvent new context-id CId=%u\n",id);
-    fsmCtxtAr[kk].state = Evnt_fsmEv1;
-    fsmCtxtAr[kk].CId   = id;
-    fsmCtxtAr[kk].time  = tNow();
-    return  CEvent::newEv(id,Evnt_newFsm,0u,sigThId,'x');
-  }
+    case Evnt_fsmEv1: {
+      DBG("CTstFsmTh::getEvent Evnt_fsmEv1 CId=%u\n",fsmCtxtAr[kk].CId);
+      fsmCtxtAr[kk].state = Evnt_fsmEv2;
+      fsmCtxtAr[kk].time  = tNow();
+      return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv2,0u,sigThId);
+    }
+    case Evnt_fsmEv2: {
+      DBG("CTstFsmTh::getEvent Evnt_fsmEv2 CId=%u\n",fsmCtxtAr[kk].CId);
+      fsmCtxtAr[kk].state = Evnt_fsmEv3;
+      fsmCtxtAr[kk].time  = tNow();
+      return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv3,0u,sigThId);
+    }
+    case Evnt_fsmEv3: {
+      DBG("CTstFsmTh::getEvent Evnt_fsmEv3 CId=%u\n",fsmCtxtAr[kk].CId);
+      fsmCtxtAr[kk].state = Evnt_fsmEv4;
+      fsmCtxtAr[kk].time  = tNow();
+      return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv4,0u,sigThId);
+    }
+    case Evnt_fsmEv4: {
+      DBG("CTstFsmTh::getEvent Evnt_fsmEv4 CId=%u\n",fsmCtxtAr[kk].CId);
+      fsmCtxtAr[kk].state = Evnt_fsmEv5;
+      fsmCtxtAr[kk].time  = tNow();
+      return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv5,0u,sigThId);
+    }
+    case Evnt_fsmEv5: {
+      DBG("CTstFsmTh::getEvent Evnt_fsmEv5 CId=%u\n",fsmCtxtAr[kk].CId);
+      fsmCtxtAr[kk].state = Evnt_fsmEv6;
+      fsmCtxtAr[kk].time  = tNow();
+      return  CEvent::newEv(fsmCtxtAr[kk].CId,Evnt_fsmEv6,0u,sigThId);
+    }
+    case Evnt_newFsm:
+    case Evnt_fsmEv6:
+    default: { // new context-id
+      uInt id = CContext::reservId();
+      DBG("CTstFsmTh::getEvent new context-id CId=%u\n",id);
+      fsmCtxtAr[kk].state = Evnt_fsmEv1;
+      fsmCtxtAr[kk].CId   = id;
+      fsmCtxtAr[kk].time  = tNow();
+      return  CEvent::newEv(id,Evnt_newFsm,0u,sigThId,'x');
+    }
   }
 }
 
-// $Id: tstSigThrd.cpp 360 2010-03-27 13:25:05Z asus $
+//=================================================
+
+template<typename T> class TMsgWrap {
+private:
+  T* pp;
+public:
+  TMsgWrap(T* p) : pp(p) {}
+  ~TMsgWrap() { delete pp; }
+
+  T& operator () () { return *pp; }
+};
+// Get object reference
+template<typename T> T& r_(T x) {
+  static T z = x; return z;
+}
+
+/////////////////////////////////
+
+char* CTstSgThX::mxBuf = NULL;
+
+CTstSgThX::CTstSgThX(uShort m0,uShort m1):
+  CEvThrd(5000/m0),nMsg0(2*m0),nMsg1(2*m1),tm0(8),tm1(2)
+{
+  DBG("CTstSgThX::CTstSgThX %u %u\n",m0,m1);
+  tName = "tstSgThrd_2";
+  nSend = 0u;
+  DtTm = 10 * tm0;
+  nMsg = nMsg0;
+  ll = jj = ff = kk = 0x0;
+  if(!mxBuf) {
+    char bxx[0x10000];
+    int  fd = open("/tmp/msg_store.bin", O_RDONLY);
+    bfLen =  read(fd, bxx, sizeof(bxx));
+    close(fd);
+    mxBuf = (char*)malloc(bfLen + 1);
+    memmove(mxBuf, bxx, bfLen);
+    nxMsg = mxBuf;
+  }
+}
+
+CEvent* CTstSgThX::getEvent() {
+  char rr = '\0';
+  CEvent* ppe = NULL;
+  if(ff < DIMCID/2) {
+    kk = ll = jj = 0;
+    sTm = tNow();
+    // Get new context-id
+    CId[ff] = CContext::reservId();
+    DBG("CTstSgThX::getEvent %u ff-%d Evnt_TstCntxt CId=%u\n",sigThId,ff,CId[ff]);
+    ppe = CEvent::newEv(CId[ff++],Evnt_TstCntxt,0u,sigThId,'x');
+    return ppe;
+  }
+  if(jj < DIMCID) {
+    ++jj;
+    int x = tNow() - sTm;
+    if(x > DtTm) {
+      LOG(L_ERR,"CTstSgThX::getEvent %u jj-%d in Delta=%u send %u msg %u<>%u\n",
+	  sigThId,jj,x,nSend,(100*(int)nSend)/x,nMsg/2);
+      sTm += DtTm;
+      x -= DtTm;
+      nSend = 0u;
+      DtTm = 10 * ((DtTm == (10 * tm0)) ? tm1 : tm0);
+      nMsg = (nMsg == nMsg0) ? nMsg1 : nMsg0;
+    }
+    int timeOut = ((2000 * nSend++) / nMsg) - (10 * x);
+    if(timeOut > 4) {
+      struct timespec req;
+      req.tv_sec  = timeOut / 1000;
+      // 1000000000
+      req.tv_nsec = MicroSec * (timeOut % 1000);
+      (void)nanosleep(&req, NULL);
+    }
+    if(++kk > DIMCID) kk = 0;
+    DBG("CTstSgThX::getEvent %u kk-%d Evnt_TstSeqw CId=%u nSend=%u\n",sigThId,kk,CId[kk],nSend);
+    if(kk/2) {
+      ppe = CEvent::newEv(CId[kk],Evnt_TstCntxt,0u,sigThId);
+      ++nSend;
+      return ppe;
+    } else {
+      PMessage pMsg = mFactory.reStore(nxMsg);
+      printf("MsgFactory restore MsgId %u\n", pMsg->getMsgId());
+      if((nxMsg-mxBuf) > (bfLen-7)) nxMsg = mxBuf;
+
+      switch(pMsg->getMsgId()) {
+        case 1: {
+          CMsgGen_mymsg1* pMm1 = (CMsgGen_mymsg1*)pMsg;
+          rr = pMm1->parse0();
+          ppe = CEvent::newEv(CId[kk++],Evnt_sipCtxt1,pMm1,sigThId);
+          ++nSend;
+          return ppe;
+        }
+        case 2: {
+          CMsgGen_mymsg2* pMm2 = (CMsgGen_mymsg2*)pMsg;
+          rr = pMm2->parse0();
+          ppe = CEvent::newEv(CId[kk++],Evnt_sipCtxt2,pMm2,sigThId);
+          ++nSend;
+          return ppe;
+        }
+        default: {
+          printf("Error - unknown MsgId\n");
+          return NULL;
+        }
+      }
+    }
+  }
+  if(ll++ < DIMCID/2) {
+    sTm = tNow();
+    DBG("CTstSgThX::getEvent %u ll-%d Evnt_DelCtxt CId=%u\n",sigThId,ll,CId[ll]);
+    ppe = CEvent::newEv(CId[ll],Evnt_SRemCtxt,0u,sigThId);
+    return ppe;
+  }
+  // tmOut to produce ev.thread-alarm
+  struct timespec req;
+  req.tv_sec  = 2 + ((11 * (int)kpAlive) / 100);
+  req.tv_nsec = 0;
+  (void)nanosleep(&req, NULL);
+  DBG("CTstSgThX::getEvent %u>\n",sigThId);
+  ff = 0;
+  return NULL;
+}
+
+// $Id: tstSigThrd.cpp 388 2010-05-15 21:27:40Z asus $

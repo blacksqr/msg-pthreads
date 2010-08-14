@@ -76,7 +76,15 @@ public:
 
 char appsHomeArr[320];
 const char* appsHome = NULL;
-extern "C" int luaopen_socket_core(lua_State *L);
+
+// Admin interpreter
+extern int  tolua_tAdminLua_open( lua_State* pLua );
+
+extern "C" {
+  int luaopen_socket_core(lua_State *L);
+  int luaopen_lsqlite3(lua_State *L);
+  //int luaopen_libRex_pcre(lua_State *L);
+}
 
 // ====================================
 
@@ -86,40 +94,40 @@ int main(int argc,char* argv[]) {
   GlAppsFlag |= LOG_IN_STDERR;
 
   while(argc > 1) {
-    if(!strcmp(argv[1],"-D")) {
-      DBG("***> Run as a deamon\n");
-      GlAppsFlag |= DAEMON_MODE;
-      argv = &argv[1];
-      --argc;
-      continue;
+    if(*argv[1] == '-') {
+      char* pArg = argv[1] + 1;
+      if(!strcmp(pArg,"D")) {
+        DBG("***> Run as a deamon\n");
+        GlAppsFlag |= DAEMON_MODE;
+
+        argv = &argv[1];  --argc;
+        continue;
+      }
+      if(!strcmp(pArg,"slog")) {
+        DBG("***> Use syslog\n");
+        GlAppsFlag &= ~LOG_IN_STDERR;
+
+        argv = &argv[1];  --argc;
+        continue;
+      }
+      if(!strcmp(pArg,"f")) {
+        // File to print LOG
+        outFl = argv[2];
+
+        argv  = &argv[2];  argc -= 2;
+        continue;
+      }
+      if(!strcmp(pArg,"d")) {
+        // Set debug level (0-4), default - 4
+        dbgLevel = *argv[2] - '0';
+        DBG("***> debug level %u\n", dbgLevel);
+
+        argv = &argv[2];  argc -= 2;
+        continue;
+      }
+      LOG(L_ERR,"Main: Bad option \"%s\"\n",argv[1]);
+      return -2;
     }
-    if(!strcmp(argv[1],"-slog")) {
-      DBG("***> Use syslog\n");
-      GlAppsFlag &= ~LOG_IN_STDERR;
-      argv = &argv[1];
-      --argc;
-      continue;
-    }
-    if(!strcmp(argv[1],"-f")) {
-      // File to print LOG
-      argc -= 2;
-      outFl = argv[2];
-      argv  = &argv[2];
-      continue;
-    }
-    if(!strcmp(argv[1],"-d")) {
-      // Set debug level (0-4), default - 4
-      argc -= 2;
-      argv = &argv[1];
-      dbgLevel = *argv[1] - '0' + 1;
-      argv = &argv[1];
-      dbgLevel = (dbgLevel<0) ? 0x0 : dbgLevel;
-      dbgLevel = (dbgLevel>4) ? 0x4 : dbgLevel;
-      continue;
-    }
-    LOG(L_WARN,"Main: Bad option \"%s\"\n",argv[1]);
-    argv = &argv[1];
-    --argc;
   }
   {
     appsHome = getenv("ITS_APP_HOME");
@@ -179,12 +187,11 @@ int main(int argc,char* argv[]) {
       pTmThrd->start();
     }
     {
-      // Admin interpreter
-      int  tolua_tAdminLua_open( lua_State* pLua );
-
       lua_State* L = lua_open();
       luaL_openlibs(L);
       luaopen_socket_core(L);
+      luaopen_lsqlite3(L);
+      //luaopen_libRex_pcre(L); 
       tolua_tAdminLua_open(L);
       strcpy((char*)appsHome,"admin.lua");
       DBG("*** Start admin-LUA script <%s> ***\n\n",appsHomeArr);
@@ -197,4 +204,4 @@ int main(int argc,char* argv[]) {
   return rrr;
 }
 
-// $Id: main.cpp 362 2010-04-18 13:46:22Z asus $
+// $Id: main.cpp 381 2010-05-10 20:16:27Z asus $

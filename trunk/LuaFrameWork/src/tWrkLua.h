@@ -37,17 +37,17 @@ class CWrkLua {
   ~CWrkLua() {}
   void init();
  public:
-  int getEvent();
-  int ctxtType();
+  int   getEvent();
+  int   ctxtType();
   char* hkCtxtState();
-  void sendMsg(int ev, int id, int pp);
-  void hkCtxtTm(int cid, int tm, int type, int f);
-  lua_State* operator &() { return pLua; }
-  const char* test() { return "Test CWrkLua"; }
+  void  sendMsg(int ev, int id, int pp);
+  void  hkCtxtTm(int cid, int tm, int type, int f);
+  lua_State* operator & () { return pLua; }
+  const char* test()       { return "Test CWrkLua"; }
   int getThId();
 };
 inline void getWTObj(void* pp, CWrkLua*& px) { px = (CWrkLua*)pp; }
 
 #endif // tWrkLua_h
 
-// $Id: tWrkLua.h 317 2010-01-15 17:34:59Z asus $
+// $Id: tWrkLua.h 375 2010-05-09 19:07:48Z asus $

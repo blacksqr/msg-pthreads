@@ -1,6 +1,7 @@
 # Model test
 
-TOPD  = /Xxx/AsEee/LuaFr/MsgParser
+TOP  = /Xxx/AsEee/LuaFr
+TOPD = /Xxx/AsEee/LuaFr/MsgParser
 
 CC  = gcc
 CXX = g++
@@ -19,9 +20,7 @@ PKGFILE = msgTst.pkg
 all:	Model mTest
 
 mTest:	$(OBJS) # $(PKGFILE)
-	$(CXX) $(CFLAGS) -o $@ $(OBJS) $(TOPD)/src/msgParser.o \
-		$(TOPD)/pcre-8.01/.libs/libpcreposix.a \
-		$(TOPD)/pcre-8.01/.libs/libpcre.a
+	$(CXX) $(CFLAGS) -o $@ $(OBJS) $(TOPD)/src/msgParser.o -L$(TOP)/Lib -lpcre
 #	rm -f *.o *~
 
 Model:

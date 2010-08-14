@@ -72,13 +72,15 @@ void* CEvThrd::go() {
       ev = CEvent::newEv(HkCId,Evnt_SThAlive,0u,sigThId);
     }
     //DBG("CEvThrd::go %s> put ev-signal Th-id %u\n",thName(),sigThId);
-    ev->put(); ev->sign();
+    ev->put();
+    ev->sign();
   }
   // thread termination event
   ev = CEvent::newEv(HkCId,Evnt_EndSigTh,0u,sigThId);
-  ev->put(); ev->sign();
+  ev->put();
+  ev->sign();
   LOG(L_WARN,"CEvThrd::go %s> TERMINATED Now=%u\n",thName(),(uInt)tNow());
   return NULL;
 }
 
-// $Id: EvThread.cpp 302 2010-01-11 22:17:35Z asus $
+// $Id: EvThread.cpp 372 2010-05-08 15:29:49Z asus $

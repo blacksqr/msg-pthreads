@@ -27,7 +27,8 @@ CTstCntx* CTstCntx::newTCtxt(uInt i) {
   return p;
 }
 
-void CTstCntx::delTCtxt(CTstCntx* pt) {
+void CTstCntx::delCtxt() {
+  CTstCntx* pt = this;
   pt->~CTstCntx();
   CTCtxt_mem.pFree(pt);
 }
@@ -75,4 +76,80 @@ char CTstCntx::onHalt() {
   return '\0';
 }
 
-// $Id: tstCntxt.cpp 349 2010-02-05 09:51:15Z asus $
+// Test context for MsgParser
+// ======================================================
+
+CSipCntx* CSipCntx::newSCtxt(uInt i) {
+  CSipCntx* p = new (CTCtxt_mem.pAlloc()) CSipCntx(i);
+  p->hashCId();
+  return p;
+}
+
+void CSipCntx::delCtxt() {
+  CSipCntx* pt = this;
+  pt->~CSipCntx();
+  CTCtxt_mem.pFree(pt);
+}
+
+// ======================================================
+
+CSipCntx::CSipCntx(uInt i): CContext(i) {
+  ctxtType = C_SIP_TST;
+  cStart = tNow();
+  nMsg = 3u + (RRand() % 7);
+  nm = 0u;
+  DBG("CSipCntx::CSipCntx Cid=%u mMsg=%u\n",cId,nMsg);
+}
+
+CSipCntx::~CSipCntx() {
+  LOG(L_WARN,"CSipCntx::~CSipCntx cId=%u Flg=%u/%u Live=%u\n",
+      cId,nm,nMsg,(uInt)(tNow()-cStart));
+  if(nMsg)
+    send0(Evnt_SaveData,iCsCtxt);
+  tstCtxtMngr.Free(cId);
+}
+
+uShort CSipCntx::Run(CEvent* pe,CWThread* pwt) {
+  ++nm;
+  DBG("CSipCntx::Run cId=%u EventId=%u %u<>%u\n",cId,pe->getEv(),nm,nMsg);
+
+  switch(pe->getEv()) {
+    case Evnt_sipCtxt1: {
+      CMsgGen_mymsg1* pMm1 = (CMsgGen_mymsg1*)pe->Data();
+      char rr = pMm1->parse1();
+      DBG("CSipCntx::Run parse MSG1 ret =%d\n", rr);
+      delete pMm1;
+      break;
+    }
+    case Evnt_sipCtxt2: {
+      CMsgGen_mymsg2* pMm2 = (CMsgGen_mymsg2*)pe->Data();
+      char rr = pMm2->parse1();
+      DBG("CSipCntx::Run parse MSG2 ret =%d\n", rr);
+      delete pMm2;
+      break;
+    }
+    default:
+      LOG(L_ERR, "Error - unknown MsgId\n");
+  }
+
+  if(nm == nMsg) {
+    DBG("CSipCntx::Run save_destruct cId=%u\n",cId);
+    send0(Evnt_SaveData,iCsCtxt);
+    destruct();
+    nMsg = 0u;
+    return 0x1;
+  }
+  return 0x0;
+}
+
+uShort CSipCntx::onTimer(uLong tn,CEvent* pe,CWThread* pwt) {
+  DBG("CSipCntx::onTimer %u> EventId=%u\n",cId,pe->getEv());
+  return 0x0;
+}
+
+char CSipCntx::onHalt() {
+  DBG("CSipCntx::onHalt %u\n",cId);
+  return '\0';
+}
+
+// $Id: tstCntxt.cpp 386 2010-05-15 16:05:24Z asus $

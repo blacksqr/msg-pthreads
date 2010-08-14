@@ -18,6 +18,8 @@
 
 CTmQueue* tmQueue = NULL;
 
+// ===================================
+
 // timer pool
 static CMPool CTmObj_mem(sizeof(CTmObj));
 
@@ -316,4 +318,4 @@ void* CTmThrd::go() {
   return NULL;
 }
 
-// $Id: TimerNew.cpp 323 2010-01-17 20:29:38Z asus $
+// $Id: TimerNew.cpp 372 2010-05-08 15:29:49Z asus $

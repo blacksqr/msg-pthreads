@@ -25,7 +25,8 @@ CContext* CFsmCtxt::newFsm(uInt i) {
   return p;
 }
 
-void CFsmCtxt::delFsm(CFsmCtxt* pt) {
+void CFsmCtxt::delCtxt() {
+  CFsmCtxt* pt = this;
   pt->~CFsmCtxt();
   CFsm_mem.pFree(pt);
 }
