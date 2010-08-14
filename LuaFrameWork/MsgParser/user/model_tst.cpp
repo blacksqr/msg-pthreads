@@ -10,12 +10,17 @@
  * All Rights Reserved.
  * Contributor(s): Alex Goldenstein.<goldale.de@googlemail.com>
  */
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include <unistd.h>
 #include <factory_myFctr1.h>
 
 using namespace MsgModel;
 
-char dmp[0x80000];
-char buff[0x80000];
+char dmp[0x20000];
+char buff[0x20000];
 
 template<typename T> T& r_(T x) { static T z = x; return z; }
 
@@ -70,38 +75,51 @@ int main() {
 
   printf("\n\t**** STORE-RESTORE MESSAGES ****\n\n");
 
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
-  pcr = mm2.store(pcr);
-  pcr = mm1.store(pcr);
+  for(uInt1 k=0; k<100; ++k) {
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+    pcr = mm2.store(pcr);
+    pcr = mm1.store(pcr);
+  }
 
   char* pcx = buff;
+  uInt2 lx = pcr - pcx;
+  printf("Buffer length %u\n", lx);
+
+  int fd = open("/tmp/msg_store.bin", O_RDWR|O_CREAT|O_TRUNC);
+  lx = write(fd, pcx, lx+1);
+  close(fd);
+  printf("Written buffer length %u\n", lx);
+  sleep(5);
 
   for(uInt1 k=0; k<30; ++k) {
 
@@ -178,4 +196,4 @@ int main() {
   return 0;
 }
 
-// $Id: model_tst.cpp 371 2010-04-24 11:51:16Z asus $
+// $Id: model_tst.cpp 385 2010-05-15 15:12:24Z asus $

@@ -116,7 +116,7 @@ const char* stopCFactory(int n) {
 
 // Delete all context from hashCntxt
 void ctxtHashClean() {
-  CCnxtMap::iterator I = hashCntxt.begin();
+  CCtxtMap::iterator I = hashCntxt.begin();
   while(I != hashCntxt.end()) {
     uInt cid     = (*I).first;
     CContext* pc = (*I).second;
@@ -161,4 +161,4 @@ public:
 };
 #endif // 0
 
-// $Id: tAdminLua.cpp 316 2010-01-14 22:48:51Z asus $
+// $Id: tAdminLua.cpp 372 2010-05-08 15:29:49Z asus $

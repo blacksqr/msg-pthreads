@@ -50,7 +50,7 @@ extern const int log_facility;
 #define hk_wTclFail      0x01
 
 // Context Events =========================
-#define Evnt_DelCtxt     0x01   // Event to remove context
+#define Evnt_DelCtxt     0x01   // Event to remove context (Only send from Ctxt it self)
 #define Evnt_PreDelCtxt  0x02   // Event to remove context
 #define Evnt_HsKeepCtxt  0x03   // Hause keep problem in some context
 #define Evnt_SThAlive    0x04   // signaling thread keepAlive event
@@ -72,15 +72,15 @@ extern const int log_facility;
 #define Evnt_fsmEv5      0x13   // FSM event 5
 #define Evnt_fsmEv6      0x14   // FSM event 6
 
+#define Evnt_sipCtxt1    0x31   // New parser context
+#define Evnt_sipCtxt2    0x32   // New parser context
+#define Evnt_sipMsgRq    0x33   // new SIP Request
+#define Evnt_sipMsgRp    0x34   // new SIP Replay
 
-
-#define Evnt_sipCtxt     0x31   // New parser context
-#define Evnt_sipMsgRq    0x32   // new SIP Request
-#define Evnt_sipMsgRp    0x33   // new SIP Replay
-
-#define Evnt_NewCall     0x34   // icoming call
-#define Evnt_Idle        0x35   // call closed
-#define Evnt_Connct      0x36   // call online
+#define Evnt_NewCall     0x35   // icoming call
+#define Evnt_Idle        0x36   // call closed
+#define Evnt_Connct      0x37   // call online
+#define Evnt_SRemCtxt    0x38   // Signal to Ctxt destruction
 
 // TimeOut ID's ===========================
 #define TOut_NoTmOut     0x00
@@ -125,4 +125,4 @@ extern uChar AdmCommand;
 
 #endif // INC_GLOBAL_H
 
-// $Id: Global.h 305 2010-01-12 12:06:38Z asus $
+// $Id: Global.h 387 2010-05-15 21:02:11Z asus $

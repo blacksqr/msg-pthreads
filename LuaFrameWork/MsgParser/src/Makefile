@@ -1,6 +1,6 @@
 # Makefile to generate message model
 
-TOPD  = /Xxx/AsEee/LuaFr/MsgParser
+TOPD  = /Top/LuaFr/MsgParser
 
 CC= gcc
 AR= ar rcu
@@ -17,7 +17,7 @@ MDLSRC = $(TOPD)/model/model_file1.tcl
 all:	  MODEL $(OBJS)
 
 MODEL:    $(MDLSRC)
-	cd $(TOPD); $(MODGEN) $<
+	cd $(TOPD); $(MODGEN) < $<
 
 .PHONY: clean
 clean:

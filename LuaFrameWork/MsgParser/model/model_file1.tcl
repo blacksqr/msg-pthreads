@@ -1,11 +1,8 @@
-# $Id: model_file1.tcl 370 2010-04-24 10:13:26Z asus $
+# $Id: model_file1.tcl 399 2010-07-10 11:46:22Z asus $
 # Model def. file
 #
 
-_record hdr2 {
-    CFieldUI4    nmid
-    CFieldUI2    id
-}
+#include model/model_inc.tcl
 
 # comment
 _record tst2 {

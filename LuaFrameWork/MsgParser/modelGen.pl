@@ -378,8 +378,7 @@ my %IncFileHash = {};
 sub notBaseType {
     my ($tp) = @_;
     #print ">>> notBaseType>>> $tp\n";
-    if($tp =~ m/(CField[US]I[1248]|CFieldF[48]|CString|TFString<\d+>|TBitMap<\d+>|TArray<([^,]+),\d+>|TFVector<([^,]+),\d+>|TVector<([^>]+)>)/)
-    {
+    if($tp =~ m/(CField[US]I[1248]|CFieldF[48]|CString|TFString<\d+>|TBitMap<\d+>|TArray<([^,]+),\d+>|TFVector<([^,]+),\d+>|TVector<([^>]+)>)/) {
 	#print "   >>> notBaseType>>> $tp >>$1 >>$2\n";
 	if(defined($2)) {
 	    return notBaseType($2);
@@ -389,86 +388,98 @@ sub notBaseType {
     }
 }
 
+@FCash = ();
+
+sub setCash {
+    my $fin = shift;
+    while (<$fin>) {
+	chomp;              # no newline
+	s/^\s+//;           # no leading white
+	s/\s+$//;           # no trailing white
+	s/\s+#.*//;         # no end-of-line comments
+	
+	# process: #include relative_PATH/file.tcl
+	if(m/^#include\s+([^\s]+)$/) {
+	    #print "call recursive #include $1\n";
+	    open(FD_, "< $1") or die "Couldn't open $1 for reading: $!\n";
+	    setCash(*FD_);
+	    next;
+	} else {
+	    s/#.*//;            # no comments
+	    next unless length; # anything left ???
+	    s/\s+/ /g;          # reduce to one space
+	    push(@FCash, $_);
+	}
+    }
+}
+
+
 my %ShMsg;
 my %ShFctr;
 my %ShStruct;
 my %ShUnion;
 my %ShRec;
 
-# Get list of model files - *.tcl
+$pMode = 0;
 
-@mdList = <./model/*.tcl>;
+setCash(*STDIN);
 
-foreach $mf ( @mdList ) {
-    print "\nProcess FILE - $mf\n";
-
-    open(MF_, "< $mf") or die "Couldn't open $mf for reading: $!\n";
-
-    $pMode = 0;
-    while (<MF_>) {
-	chomp;              # no newline
-	s/#.*//;            # no comments
-	s/^\s+//;           # no leading white
-	s/\s+$//;           # no trailing white
-	next unless length; # anything left?
-	s/\s+/ /g;          # reduce to one space
-
-	#print "LINE =>$_<=\n";
-	if( ! $pMode ) {
-	    # composite type  header
-	    if(m/^_([^ ]+) ([^ ]+) ?{$/) {
-		$pMode   = 1;
-		$Strct   = $1;
-		$StrctNm = $2;
-		print "  Process - $Strct $StrctNm\n";
-		if($Strct eq "message") {
-		    $ShMsg{$StrctNm} = ();
-		} elsif($Strct eq "factory") {
-		    $ShFctr{$StrctNm} = ();
-		} elsif($Strct eq "record") {
-		    $ShRec{$StrctNm} = ();
-		} elsif($Strct eq "struct") {
-		    $ShStruct{$StrctNm} = ();
-		} elsif($Strct eq "union") {
-		    $ShUnion{$StrctNm} = ();
-		} else {
-		    print "*** ERROR - <$Strct> unknown <$pMode>\n";
-		}
-	    }
-	} else {
-	    if($_ eq "}") {
-		$pMode = 0;
-		#print "\$type2inc{ $StrctNm } = $Strct\_$StrctNm;\n";
-		$type2inc{ $StrctNm } = "$Strct\_$StrctNm";
-		next;
-	    }
-	    # composite type body
-	    my ($vType, $vnm) = split(" ", $_, 2);
-	    $xx = notBaseType($vType);
-	    if( $xx ne "" ) {
-		#print "notBaseType\($vType\) ==>> $xx\n";
-
-		# Include file list
-		my $vv = "$Strct\_$StrctNm";
-		#print "push\(\@{\$IncFileHash{ $vv }}, $xx\);\n";
-		push(@{$IncFileHash{$vv}}, $xx);
-	    }
+foreach (@FCash) {
+    #print "LINE>> $_\n";
+    if( ! $pMode ) {
+	# composite type  header
+	if(m/^_([^ ]+) ([^ ]+) ?{$/) {
+	    $pMode   = 1;
+	    $Strct   = $1;
+	    $StrctNm = $2;
+	    print "  Process - $Strct $StrctNm\n";
 	    if($Strct eq "message") {
-		push(@{$ShMsg{$StrctNm}}, $_);
-		#print "message - push\(\@{\$ShMsg{ $StrctNm }}, $_ \)\n";
+		$ShMsg{$StrctNm} = ();
 	    } elsif($Strct eq "factory") {
-		push(@{$ShFctr{$StrctNm}}, $_);
+		$ShFctr{$StrctNm} = ();
 	    } elsif($Strct eq "record") {
-		push(@{$ShRec{$StrctNm}}, $_);
+		$ShRec{$StrctNm} = ();
 	    } elsif($Strct eq "struct") {
-		push(@{$ShStruct{$StrctNm}}, $_);
+		$ShStruct{$StrctNm} = ();
 	    } elsif($Strct eq "union") {
-		push(@{$ShUnion{$StrctNm}}, $_);
+		$ShUnion{$StrctNm} = ();
 	    } else {
-		print "*** ERROR - >$Strct< unknown <$pMode>\n";
+		print "*** ERROR - <$Strct> unknown <$pMode>\n";
 	    }
-	    push(@sBody, $_);
 	}
+    } else {
+	if($_ eq "}") {
+	    $pMode = 0;
+	    #print "\$type2inc{ $StrctNm } = $Strct\_$StrctNm;\n";
+	    $type2inc{ $StrctNm } = "$Strct\_$StrctNm";
+	    next;
+	}
+	# composite type body
+	my ($vType, $vnm) = split(" ", $_, 2);
+	$xx = notBaseType($vType);
+	if( $xx ne "" ) {
+	    #print "notBaseType\($vType\) ==>> $xx\n";
+
+	    # Include file list
+	    my $vv = "$Strct\_$StrctNm";
+	    #print "push\(\@{\$IncFileHash{ $vv }}, $xx\);\n";
+	    push(@{$IncFileHash{$vv}}, $xx);
+	}
+	if($Strct eq "message") {
+	    push(@{$ShMsg{$StrctNm}}, $_);
+	    #print "message - push\(\@{\$ShMsg{ $StrctNm }}, $_ \)\n";
+	} elsif($Strct eq "factory") {
+	    push(@{$ShFctr{$StrctNm}}, $_);
+	} elsif($Strct eq "record") {
+	    push(@{$ShRec{$StrctNm}}, $_);
+	} elsif($Strct eq "struct") {
+	    push(@{$ShStruct{$StrctNm}}, $_);
+	} elsif($Strct eq "union") {
+	    push(@{$ShUnion{$StrctNm}}, $_);
+	} else {
+	    print "*** ERROR - >$Strct< unknown <$pMode>\n";
+	}
+	push(@sBody, $_);
     }
 }
 
@@ -833,4 +844,4 @@ open(HFF, "> ./gen/ModelConst.h")
 print HFF "$mPref\n// Gen-Struct - MdlGlobConst\n$text\n$mSuff";
 close HFF;
 
-# $Id: modelGen.pl 369 2010-04-20 20:36:59Z asus $
+# $Id: modelGen.pl 399 2010-07-10 11:46:22Z asus $

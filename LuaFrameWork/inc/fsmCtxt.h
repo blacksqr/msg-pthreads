@@ -42,7 +42,7 @@ class CFsmCtxt: public CContext {
  public:
   // memPool - new & delete
   static CContext* newFsm(uInt i);
-  static void delFsm(CFsmCtxt* p);
+  virtual void delCtxt();
 };
 
 #endif // FSM_CNTXT_H

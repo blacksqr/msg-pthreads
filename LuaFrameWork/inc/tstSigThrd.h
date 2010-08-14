@@ -52,12 +52,21 @@ class CTstSgTh: public CEvThrd {
   virtual ~CTstSgTh() {}
 };
 
+#include <factory_myFctr1.h>
+using namespace MsgModel;
+
+#define DIMCID 0xFF
+
 // send nMsg pro sec and makes pause to produce ALARM
 class CTstSgThX: public CEvThrd {
  protected:
-  uLong  sTm;     // Start time point
-  uInt   CId[11];  // test Ctxt-id
-  uShort nSend,DtTm,nMsg;
+  static char* mxBuf;
+  CFctryGen_myFctr1 mFactory;
+  char*  nxMsg;    // Next msg in buffer
+  uLong  sTm;      // Start time point
+  // test Ctxt-id
+  uInt   CId[DIMCID+1];
+  uShort nSend,DtTm,nMsg,bfLen;
   short ff, kk, jj, ll;
   // nMsg0 time periode tm0 in 0.1 sec & nMsg1 time periode tm1 in 0.1 sec
   const uShort nMsg0,nMsg1;   // nMsg1 >= nMsg0
@@ -90,4 +99,4 @@ class CTstFsmTh: public CEvThrd {
 
 #endif // TST_SIG_TH_H
 
-// $Id: tstSigThrd.h 360 2010-03-27 13:25:05Z asus $
+// $Id: tstSigThrd.h 385 2010-05-15 15:12:24Z asus $

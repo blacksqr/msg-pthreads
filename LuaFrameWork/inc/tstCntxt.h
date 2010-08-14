@@ -31,15 +31,34 @@ class CTstCntx: public CContext {
   virtual char onHalt();
   uInt cStart;
   uChar nm,nMsg;
-  virtual void delHook() { delTCtxt(this); }
   CTstCntx(uInt i);
   ~CTstCntx();
  public:
   // memPool - new & delete
   static CTstCntx* newTCtxt(uInt i);
-  static void delTCtxt(CTstCntx* p);
+  virtual void delCtxt();
+};
+
+#define C_SIP_TST 0x04
+
+class CSipCntx: public CContext {
+  // disable copy constructor.
+  CSipCntx(const CSipCntx&);
+  void operator = (const CSipCntx&);
+ protected:
+  virtual uShort Run(CEvent* pe,CWThread* pwt);
+  virtual uShort onTimer(uLong tn,CEvent* pe,CWThread* pwt);
+  virtual char onHalt();
+  uInt cStart;
+  uChar nm,nMsg;
+  CSipCntx(uInt i);
+  ~CSipCntx();
+ public:
+  // memPool - new & delete
+  static CSipCntx* newSCtxt(uInt i);
+  virtual void delCtxt();
 };
 
 #endif // TST_CNTXT_H
 
-// $Id: tstCntxt.h 349 2010-02-05 09:51:15Z asus $
+// $Id: tstCntxt.h 386 2010-05-15 16:05:24Z asus $

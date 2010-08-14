@@ -38,7 +38,7 @@ class CWThread: public CThreadObj {
  protected:
   static uChar nRun;         // global number of running threads
   static uChar nReload;
-  static uChar nWaiting;
+  volatile static uChar nWaiting;
   // Common for all wrkThreads Lua-Init
   static char  eFlag;  // flag to exit w-threads
   uInt         nMsgTot;
@@ -82,12 +82,12 @@ class CWThread: public CThreadObj {
   uShort gMId()   { return pe ? pe->getEv() : 0u; }
   uShort gStat()  { return wState; }
   uShort gNWiat() { return nWait; }
-  // Get number of running thread ??? start idle job
-  static uChar NRunTh() { return (nRun - nWaiting); }
+  // Get number of waiting threads
+  static const uChar nWaitingTh() { return nWaiting; }
 };
 typedef CWThread* pWThread;
 extern pWThread pWrkThArr[];
 
 #endif // WTHREAD_H
 
-// $Id: WThread.h 299 2010-01-09 22:19:52Z asus $
+// $Id: WThread.h 372 2010-05-08 15:29:49Z asus $
